@@ -17,6 +17,7 @@ Route::get('/', function () {
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
+        'error' => session('error')
     ]);
 });
 
@@ -35,8 +36,8 @@ Route::get('/dashboard', function () {
 
 
 // Protect routes with 'admin' middleware and 'admin' prefix
-Route::prefix('admin')->middleware(['auth', AdminMiddleware::class])->group(function () {
-
+Route::prefix('admin')->middleware(['admin', AdminMiddleware::class])->group(function () {
+    Route::get('/', [DashboardController::class, 'index']);
     Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('admin.dashboard');
 
     // // Manage Users
