@@ -42,4 +42,9 @@
   .content {
     padding: 20px;
   }
-  
+  .menu-sub {
+	display: none;
+}
+  .menu-sub.open {
+	display: block;
+}

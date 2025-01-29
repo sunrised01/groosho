@@ -1,9 +1,56 @@
-import React from 'react';
-import { Link } from '@inertiajs/react';
-import { BsHouseDoor } from 'react-icons/bs'; // Import the desired icon from react-icons
+import React, {useState} from 'react';
+import { Link, usePage } from '@inertiajs/react';
+import { BsHouseDoor, BsFilePost, BsBox, BsCart, BsGear, BsPeople } from 'react-icons/bs'; 
 
 
 const Sidebar = () => {
+    const urlData = usePage();
+
+     // Array of menu items
+     const menuItems = [
+        { 
+            name: 'Dashboard', 
+            icon: <BsHouseDoor />, 
+            link: '/admin/dashboard' 
+        },
+        { 
+            name: 'Posts', 
+            icon: <BsFilePost />, 
+            link: '/admin/posts',
+            subMenu: [
+                { name: 'All Posts', link: '/admin/posts' },
+                { name: 'Add New Post', link: '/admin/posts/create' },
+                { name: 'Categories', link: '/admin/posts/categories' }
+            ]
+        },
+        { 
+            name: 'Products', 
+            icon: <BsBox />, 
+            link: '/admin/products',
+            subMenu: [
+                { name: 'All Posts', link: '/admin/products' },
+                { name: 'Add New Post', link: '/admin/products/create' },
+                { name: 'Categories', link: '/admin/products/categories' },
+                { name: 'Tags', link: '/admin/products/tags' }
+            ]
+        },
+        { 
+            name: 'Sales', 
+            icon: <BsCart />, 
+            link: '/admin/sales' 
+        },
+        { 
+            name: 'Settings', 
+            icon: <BsGear />, 
+            link: '/admin/settings' 
+        },
+        { 
+            name: 'Users', 
+            icon: <BsPeople />, 
+            link: '/admin/users' 
+        }
+    ];
+    
     return (
         <aside id="layout-menu" className="layout-menu menu-vertical menu bg-menu-theme">
             <div className="app-brand demo">
@@ -74,13 +121,46 @@ const Sidebar = () => {
             <div className="menu-inner-shadow"></div>
 
             <ul className="menu-inner py-1">
-               {/* Dashboards */}
-                <li className="menu-item active">
-                    <Link href="/" className="menu-link active" aria-label="Navigate to Dashboard" aria-current="page">
-                        <BsHouseDoor className="menu-icon" /> {/* Use the React icon component */}
-                        <div>Dashboard</div>
-                    </Link>
-                </li>
+                {menuItems.map((item, index) => {
+                    const isActive = urlData.url === item.link;
+
+                    return (
+                        <li key={index} className={`menu-item ${isActive ? 'active' : ''}`}>
+                            
+                            <Link
+                                href={item.link}
+                                className="menu-link"
+                                aria-label={`Navigate to ${item.name}`}
+                            >
+                                <span className="menu-icon">{item.icon}</span>
+                                <div>{item.name}</div>
+                            </Link>
+                           
+
+                            {/* Submenu handling */}
+                            {item.subMenu && (
+                                <ul className={`menu-sub ${isActive ? 'open' : ''}`}>
+                                    {item.subMenu.map((subItem, subIndex) => {
+                                        const isSubActive = urlData.url === subItem.link;
+                                        return (
+                                            <li key={subIndex} className={`menu-item ${isSubActive ? 'active' : ''}`}>
+                                                <Link
+                                                    href={subItem.link}
+                                                    className="menu-link"
+                                                    aria-label={`Navigate to ${subItem.name}`}
+                                                >
+                                                    <div>{subItem.name}</div>
+                                                </Link>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            )}
+                        </li>
+                    );
+                })}
+
+
             </ul>
         </aside>
     );

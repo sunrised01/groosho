@@ -40,6 +40,8 @@ Route::prefix('admin')->middleware(['admin', AdminMiddleware::class])->group(fun
     Route::get('/', [DashboardController::class, 'index']);
     Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('admin.dashboard');
 
+    Route::get('/posts', [DashboardController::class, 'dashboard'])->name('admin.posts');
+
     // // Manage Users
     // Route::get('/users', [AdminController::class, 'users'])->name('admin.users');
     // Route::get('/users/{id}', [AdminController::class, 'showUser'])->name('admin.showUser');

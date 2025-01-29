@@ -22,7 +22,13 @@ class AdminMiddleware
         if (Auth::check() && in_array('admin', Auth::user()->roles->pluck('name')->sort()->values()->toArray())) {
             return $next($request);
         }
-       
-        return redirect('/')->with('error','You have not admin access'); // or any route you prefer
+        
+        if (Auth::check()){
+            return redirect('/')->with('error','You have not admin access'); 
+        } 
+        else{
+            return redirect(route('admin.login'));
+        }
+        
     }
 }
