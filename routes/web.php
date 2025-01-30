@@ -6,7 +6,8 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Admin\Auth\LoginController;
 use App\Http\Controllers\Admin\DashboardController;
-
+use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\FilesController;
 
 use App\Http\Middleware\AdminMiddleware;
 
@@ -41,6 +42,13 @@ Route::prefix('admin')->middleware(['admin', AdminMiddleware::class])->group(fun
     Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('admin.dashboard');
 
     Route::get('/posts', [DashboardController::class, 'dashboard'])->name('admin.posts');
+
+    Route::get('/settings', [SettingsController::class, 'index'])->name('admin.settings');
+    Route::post('/save-settings', [SettingsController::class, 'saveSettings'])->name('settings.save');
+
+    Route::get('/files', [FilesController::class, 'index'])->name('admin.files');
+    Route::post('/files/store', [FilesController::class, 'store'])->name('files.save');
+    
 
     // // Manage Users
     // Route::get('/users', [AdminController::class, 'users'])->name('admin.users');

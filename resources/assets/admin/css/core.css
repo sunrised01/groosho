@@ -22452,7 +22452,8 @@ html:not(.layout-menu-fixed) .menu-inner-shadow {
   white-space: normal;
 }
 .layout-navbar .navbar-dropdown.dropdown-user .dropdown-menu {
-  min-width: 14rem;
+	min-width: 14rem;
+	left: -178px;
 }
 .layout-navbar[class*=bg-]:not(.bg-navbar-theme) .nav-item .input-group-text,
 .layout-navbar[class*=bg-]:not(.bg-navbar-theme) .nav-item .dropdown-toggle {

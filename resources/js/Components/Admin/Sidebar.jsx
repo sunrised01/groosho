@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { BsHouseDoor, BsFilePost, BsBox, BsCart, BsGear, BsPeople } from 'react-icons/bs'; 
+import { FaFileAlt } from 'react-icons/fa';  // Import the new icon
 
 
 const Sidebar = () => {
@@ -12,6 +13,11 @@ const Sidebar = () => {
             name: 'Dashboard', 
             icon: <BsHouseDoor />, 
             link: '/admin/dashboard' 
+        },
+        { 
+            name: 'Files', 
+            icon: <FaFileAlt />, 
+            link: '/admin/files',
         },
         { 
             name: 'Posts', 

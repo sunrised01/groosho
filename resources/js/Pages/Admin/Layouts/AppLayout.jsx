@@ -1,12 +1,13 @@
 import React from 'react';
-import '../../../../css/admin/core.css';
-import '../../../../css/admin/theme-default.css';
-import '../../../../css/admin/style.css';
+import '../../../../assets/admin/css/core.css';
+import '../../../../assets/admin/css/theme-default.css';
+import '../../../../assets/admin/css/style.css';
 import Navbar from '@/Components/Admin/Navbar';
 import Sidebar from '@/Components/Admin/Sidebar';
 
 
 export default function AuthLayout({ children }) {
+
     return (
         <div className="layout-wrapper layout-content-navbar">
             <div className="layout-container">
