@@ -10,7 +10,7 @@ class Files extends Model
     use HasFactory;
 
     // Define the fillable attributes for mass assignment
-    protected $fillable = ['name', 'path', 'type'];
+    protected $fillable = ['title', 'name', 'author', 'file_size', 'path', 'type', 'small_path', 'thumb_path', 'caption', 'description'];
 
     // Optional: Define the table name if it differs from the default (e.g., 'files')
     protected $table = 'files';

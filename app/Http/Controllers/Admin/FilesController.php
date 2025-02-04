@@ -6,8 +6,6 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Files;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use File;
 
 class FilesController extends Controller
 {
@@ -16,7 +14,16 @@ class FilesController extends Controller
      */
     public function index()
     {
-        $files = Files::all();
+        $files = Files::orderBy('created_at', 'desc')->paginate(12);
+        $files = $files->map(function ($file) {
+            if (strpos($file->type, 'image/') !== false) {
+                $file->display_url = asset('storage/' . $file->small_path);
+            } else {
+                $file->display_url = asset('storage/' . $file->path);
+            }
+            $file->url = asset('storage/' . $file->path);
+            return $file;
+        });
         return Inertia::render('Admin/Files', ['files' => $files]);
     }
 
@@ -25,32 +32,37 @@ class FilesController extends Controller
      */
     public function store(Request $request)
     {
-        // Validate incoming file
         $request->validate([
             'file' => 'required|file|mimes:jpg,png,jpeg,gif,webp,mp4,avi,pdf|max:10240',
         ]);
 
-        // Get the file from the request
         $file = $request->file('file');
         $originalName = $file->getClientOriginalName();
         $extension = $file->getClientOriginalExtension();
+        $fileSize = $file->getSize();
         
-        // Get current date for folder structure (year/month/day)
+        if ($fileSize >= 1073741824) {
+            $fileSize = number_format($fileSize / 1073741824, 2) . ' GB';
+        } elseif ($fileSize >= 1048576) {
+            $fileSize = number_format($fileSize / 1048576, 2) . ' MB';
+        } elseif ($fileSize >= 1024) {
+            $fileSize = number_format($fileSize / 1024, 2) . ' KB';
+        } else {
+            $fileSize = $fileSize . ' bytes';
+        }
+
         $currentDate = now();
         $year = $currentDate->format('Y');
         $month = $currentDate->format('m');
         $day = $currentDate->format('d');
 
-        // Create directory path in storage (storage/app/files/year/month/day)
-        $path = "files/{$year}/{$month}/{$day}/";
+        $path = "uploads/{$year}/{$month}/{$day}/";
      
-       // Check if the directory exists, if not, create it
        if (!Storage::disk('public')->exists($path)) {
-            Storage::disk('public')->makeDirectory($path, 0755, true); // 0755 gives proper permissions
+            Storage::disk('public')->makeDirectory($path, 0755, true); 
         }
         
-        // Check if the file exists in the storage folder and create a unique name if necessary
-        $fileName = pathinfo($originalName, PATHINFO_FILENAME);
+         $fileName = pathinfo($originalName, PATHINFO_FILENAME);
         $uniqueName = $fileName . '.' . $extension;
         $counter = 1;
 
@@ -59,46 +71,50 @@ class FilesController extends Controller
             $counter++;
         }
 
-        // Save the file in the desired directory with a unique name
-        $file->storeAs($path, $uniqueName);
+        $file->storeAs($path, $uniqueName, 'public');
+     
       
-        // Handle image resizing if the file is an image
         $filePath = $path . $uniqueName;
         $fileType = $file->getClientMimeType();
 
-        // if (in_array($fileType, ['image/jpeg', 'image/png', 'image/gif', 'image/webp'])) {
-        //     // Resize image for different sizes (original, 300x300, 100x100)
-        //     $this->resizeImage(Storage::path($filePath), $path, $uniqueName, 300, 300, 'small');
-        //     $this->resizeImage(Storage::path($filePath), $path, $uniqueName, 100, 100, 'thumb');
+        if (in_array($fileType, ['image/jpeg', 'image/png', 'image/gif', 'image/webp'])) {
+            $localPath = Storage::disk('public')->path($filePath);
+
+            $this->resizeImage($localPath, $path, $uniqueName, 300, 300, 'thumb');
+            $this->resizeImage($localPath, $path, $uniqueName, 150, 150, 'small');
             
-        //     // Store resized images paths in the database
-        //     $resizedPaths = [
-        //         'original' => $filePath,
-        //         'small' => $path . 'small_' . $uniqueName,
-        //         'thumb' => $path . 'thumb_' . $uniqueName,
-        //     ];
-        // } else {
-        //     // For non-image files, save original path only
-        //     $resizedPaths = [
-        //         'original' => $filePath,
-        //     ];
-        // }
+            $resizedPaths = [
+                'original' => $filePath,
+                'small' => $path . 'small_' . $uniqueName,
+                'thumb' => $path . 'thumb_' . $uniqueName,
+            ];
+        } else {
+            $resizedPaths = [
+                'original' => $filePath,
+            ];
+        }
 
-        $resizedPaths = [
-            'original' => $filePath,
-        ];
-
-        // Save file information in the database
-        $fileRecord = Files::create([
-            'name' => $originalName,
+        $insertData = [
+            'title' => $fileName,
+            'name' => $uniqueName,
+            'author' => auth()->user()->id,
+            'file_size' => $fileSize,
             'path' => $resizedPaths['original'],
             'type' => $fileType,
             'small_path' => $resizedPaths['small'] ?? null,
             'thumb_path' => $resizedPaths['thumb'] ?? null,
-        ]);
+        ];
 
-        // Return success response
-        return response()->json(['message' => 'File uploaded successfully', 'file' => $fileRecord], 200);
+        $file = Files::create($insertData);
+
+        if (strpos($file->type, 'image/') !== false) {
+            $file['display_url'] = asset('storage/' . $file->small_path);
+        } else {
+            $file['display_url'] = asset('storage/' . $file->path);
+        }
+        $file['url'] = asset('storage/' . $file->path);
+
+        return response()->json($file, 200);
     }
 
     /**
@@ -106,7 +122,7 @@ class FilesController extends Controller
      */
     private function resizeImage($filePath, $path, $uniqueName, $width, $height, $size)
     {
-        
+    
         // Get image details
         list($originalWidth, $originalHeight, $imageType) = getimagesize($filePath);
 
@@ -139,7 +155,8 @@ class FilesController extends Controller
         imagefilter($resizedImage, IMG_FILTER_CONTRAST, -10);
 
         // Save the resized image to the storage path
-        $resizedFilePath = storage_path('app/' . $path . $size . '_' . $uniqueName);
+        $resizedFilePath = storage_path('app/public/' . $path . $size . '_' . $uniqueName);
+       
         switch ($imageType) {
             case IMAGETYPE_JPEG:
                 imagejpeg($resizedImage, $resizedFilePath, 90);
@@ -160,19 +177,52 @@ class FilesController extends Controller
         imagedestroy($resizedImage);
     }
 
+     /**
+     * Update file information.
+     */
+
+    public function update(Request $request)
+    {
+        // Validate the incoming request
+        $validated = $request->validate([
+            'title' => 'string|max:255',
+            'caption' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        // Find the file by ID and update the information
+        $file = Files::findOrFail($request->id);
+        $file->title = $validated['title'];
+        $file->caption = $validated['caption'];
+        $file->description = $validated['description'];
+        $file->save();
+
+        // Return a JSON response indicating success
+        return response()->json([
+            'message' => 'File information updated successfully!',
+        ]);
+    }
+
     /**
      * Delete a file.
      */
-    public function destroy(Files $file)
+    public function destroy($id)
     {
-        // Delete file from storage
-        Storage::delete($file->path);
-        Storage::delete($file->small_path);
-        Storage::delete($file->thumb_path);
-
-        // Delete file record from database
+        $file = Files::findOrFail($id);
+        if (Storage::exists($file->path)) {
+            Storage::delete($file->path);
+        }
+        if($file->small_path != null){
+            if (Storage::exists($file->small_path)) {
+                Storage::delete($file->small_path);
+            }
+        }
+        if($file->thumb_path != null){
+            if (Storage::exists($file->thumb_path)) {
+                Storage::delete($file->thumb_path);
+            }
+        }
         $file->delete();
-
         return response()->json(['message' => 'File deleted successfully']);
     }
 }

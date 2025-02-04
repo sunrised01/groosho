@@ -834,5 +834,114 @@ html:not(.layout-menu-collapsed) .bg-menu-theme .menu-inner .menu-item .menu-lin
 .bg-footer-theme hr {
   border-color: rgba(105, 108, 255, 0.075);
 }
+.file-card {
+  background-color: #fff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
 
+.file-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.file-thumbnail img {
+  max-height: 150px;
+  object-fit: cover;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.file-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 150px;
+}
+
+.file-name {
+  font-size: 14px;
+  color: #333;
+  font-weight: bold;
+}
+
+.file-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.file-actions button,
+.file-actions a {
+  padding: 5px 10px;
+}
+
+.drop-area {
+  border: 2px dashed #007bff;
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  background-color: #f7f7f7;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.drop-area.drag-over {
+  background-color: #e0e0e0;
+}
+.p-5{
+  padding: 5px !important;
+}
+
+.file-info-modal {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 400px;
+  height: 100%;
+  background-color: white;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.modal-content {
+  padding: 10px;
+}
+
+.close-modal {
+  font-size: 30px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+
+/* Custom Modal Styling */
+.modal-dialog.modal-right{
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 50%;  /* Set modal to half the screen width */
+  height: 100%;  /* Full height */
+  margin: 0;  /* Remove any margin */
+  padding: 0;  /* Remove padding */
+}
+
+.modal-right .modal-content {
+  height: 100%;
+  overflow-y: auto;  /* Enable scroll if content overflows */
+}
+
+.modal.fade.show {
+  display: block !important;
+}
+
+.modal-backdrop {
+  display: none; /* Disable backdrop */
+}
+.fileicon {
+	border-radius: 4px;
+	border: 1px solid #e5e7eb;
+}
 /*# sourceMappingURL=theme-default.css.map */

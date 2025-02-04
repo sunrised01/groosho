@@ -47,8 +47,10 @@ Route::prefix('admin')->middleware(['admin', AdminMiddleware::class])->group(fun
     Route::post('/save-settings', [SettingsController::class, 'saveSettings'])->name('settings.save');
 
     Route::get('/files', [FilesController::class, 'index'])->name('admin.files');
-    Route::post('/files/store', [FilesController::class, 'store'])->name('files.save');
-    
+    Route::post('/file/store', [FilesController::class, 'store'])->name('files.save');
+    Route::post('/file/update', [FilesController::class, 'update'])->name('files.update');
+    Route::delete('/file/{id}', [FilesController::class, 'destroy'])->name('files.destroy');
+
 
     // // Manage Users
     // Route::get('/users', [AdminController::class, 'users'])->name('admin.users');

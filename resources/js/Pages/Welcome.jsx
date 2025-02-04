@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';  // Import toastify styles
+import 'react-toastify/dist/ReactToastify.css'; 
 
 export default function Welcome({ auth, laravelVersion, phpVersion, error }) {
 
