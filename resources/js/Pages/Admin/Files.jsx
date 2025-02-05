@@ -1,16 +1,18 @@
 import React, { useState, useRef } from "react";
 import AppLayout from "@/Pages/Admin/Layouts/AppLayout";
-import { Head } from "@inertiajs/react";
+import { Head, Link } from "@inertiajs/react";
 
 import { FaFileAlt, FaVideo } from "react-icons/fa";
 import { MdPictureAsPdf } from "react-icons/md";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'; 
+import Pagination from '@/Components/Pagination';
+import FeaturedImageSelector from '@/Components/Admin/FeaturedImageSelector'; 
 
 
-export default function Files({ files }) {
+
+export default function Files({ files,pagination }) {
    
-
    const [uploadFiles, setUploadFiles] = useState([]);
    const [uploadProgress, setUploadProgress] = useState([]);
    const [fileList, setFileList] = useState(files); 
@@ -21,6 +23,10 @@ export default function Files({ files }) {
    const [caption, setCaption] = useState('');
    const [description, setDescription] = useState('');
 
+   const [currentPage] = useState(pagination.current_page);
+   const [lastPage] = useState(pagination.last_page); 
+
+   
    // Handel input text change
    const handleInputChange = (event) => {
       const { name, value } = event.target; 
@@ -85,26 +91,21 @@ export default function Files({ files }) {
          const formData = new FormData();
          formData.append("file", file);
 
-         const csrfToken = getCsrfToken();  // Get CSRF token
+         const csrfToken = getCsrfToken();  
 
-         // Create a new instance of XMLHttpRequest to upload the file with progress tracking
          const xhr = new XMLHttpRequest();
-         xhr.open("POST", route("files.save"), true);  // Ensure this route matches your backend route
+         xhr.open("POST", route("files.save"), true);  
 
-         // Set CSRF token in request header
          xhr.setRequestHeader("X-CSRF-TOKEN", csrfToken);
 
-         // Initialize progress for the new file
          setUploadProgress((prevProgress) => [
             ...prevProgress,
             { file: file.name, progress: 0 }
          ]);
 
-         // Listen for progress events to update progress bar
          xhr.upload.onprogress = (event) => {
             if (event.lengthComputable) {
                const progress = Math.round((event.loaded / event.total) * 100);
-               // Update progress for the current file
                setUploadProgress((prevProgress) => {
                   const updatedProgress = [...prevProgress];
                   updatedProgress[index] = { file: file.name, progress };
@@ -113,34 +114,27 @@ export default function Files({ files }) {
             }
          };
 
-         // On successful upload, add the uploaded file to the list
          xhr.onload = () => {
             if (xhr.status === 200) {
-               const uploadedFile = JSON.parse(xhr.responseText); // Assuming the backend returns the file object after upload
-
-               // Update the state with the newly uploaded file and sort the list in descending order
+               const uploadedFile = JSON.parse(xhr.responseText);  
                setFileList((prevFiles) => {
                   const updatedFiles = [...prevFiles, uploadedFile];
-                  // Sort the files by upload time or ID in descending order
-                  return updatedFiles.sort((a, b) => b.id - a.id); // Change `id` to whatever field you use
+                  return updatedFiles.sort((a, b) => b.id - a.id); 
                });
 
-               // Reset progress for this file
                setUploadProgress((prevProgress) => {
                   const updatedProgress = prevProgress.filter((progress) => progress.file !== file.name);
                   return updatedProgress;
                });
 
-               // Reset the file input box after uploading
                if (fileInputRef.current) {
-                  fileInputRef.current.value = ''; // Clear the input value
+                  fileInputRef.current.value = ''; 
                }
             } else {
                alert(`Error uploading ${file.name}.`);
             }
          };
 
-         // Send the form data to the backend
          xhr.send(formData);
       });
    };
@@ -220,12 +214,19 @@ export default function Files({ files }) {
       link.click();
    };
 
+   const [featuredImage, setFeaturedImage] = useState(null);
+
+  
+   const handleImageSelect = (image) => {
+      setFeaturedImage(image);
+    };
+
    return (
       <AppLayout>
          <Head title="Files" />
          <ToastContainer
                position="top-right"
-               autoClose={5000} // Auto-close after 5 seconds
+               autoClose={5000}
                hideProgressBar={false}
                newestOnTop={true}
                closeOnClick={true}
@@ -238,6 +239,7 @@ export default function Files({ files }) {
                      {/* File Upload Section */}
                      <div className="upload-section">
                         <h5>Media Library</h5>
+                        <FeaturedImageSelector onImageSelect={handleImageSelect} />
                         <hr/>
                         <div
                            ref={dropAreaRef}
@@ -452,6 +454,15 @@ export default function Files({ files }) {
                            </div>
                         </div>
                      )}
+
+                     {/* Pagination Section */}
+                     <div className="mt-5">
+                        <Pagination
+                        currentPage={currentPage}
+                        lastPage={lastPage}
+                        />
+                     </div>
+                     
 
                   </div>
                </div>

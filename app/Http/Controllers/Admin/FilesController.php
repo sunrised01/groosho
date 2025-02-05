@@ -15,7 +15,9 @@ class FilesController extends Controller
     public function index()
     {
         $files = Files::orderBy('created_at', 'desc')->paginate(12);
-        $files = $files->map(function ($file) {
+
+       
+        $filesData = $files->map(function ($file) {
             if (strpos($file->type, 'image/') !== false) {
                 $file->display_url = asset('storage/' . $file->small_path);
             } else {
@@ -24,7 +26,16 @@ class FilesController extends Controller
             $file->url = asset('storage/' . $file->path);
             return $file;
         });
-        return Inertia::render('Admin/Files', ['files' => $files]);
+
+        return Inertia::render('Admin/Files', [
+            'files' => $filesData, 
+            'pagination' => [
+                'current_page' => $files->currentPage(),
+                'last_page' => $files->lastPage(),
+                'per_page' => $files->perPage(),
+                'total' => $files->total(),
+            ]
+        ]);
     }
 
     /**
@@ -200,6 +211,38 @@ class FilesController extends Controller
         // Return a JSON response indicating success
         return response()->json([
             'message' => 'File information updated successfully!',
+        ]);
+    }
+
+    /**
+     * Fetch files
+     */
+    public function fetchFiels(Request $request)
+    {
+        $perPage = 12; 
+        $page = $request->input('page', 1);
+
+        $filesQuery = Files::orderBy('created_at', 'desc');
+        $files = $filesQuery->paginate($perPage, ['*'], 'page', $page);
+
+        $filesData = $files->map(function ($file) {
+            if (strpos($file->type, 'image/') !== false) {
+                $file->display_url = asset('storage/' . $file->small_path);
+            } else {
+                $file->display_url = asset('storage/' . $file->path);
+            }
+            $file->url = asset('storage/' . $file->path);
+            return $file;
+        });
+
+        return response()->json([
+            'files' => $filesData,
+            'pagination' => [
+                'current_page' => $files->currentPage(),
+                'last_page' => $files->lastPage(),
+                'per_page' => $files->perPage(),
+                'total' => $files->total(),
+            ]
         ]);
     }
 

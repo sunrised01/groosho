@@ -50,6 +50,8 @@ Route::prefix('admin')->middleware(['admin', AdminMiddleware::class])->group(fun
     Route::post('/file/store', [FilesController::class, 'store'])->name('files.save');
     Route::post('/file/update', [FilesController::class, 'update'])->name('files.update');
     Route::delete('/file/{id}', [FilesController::class, 'destroy'])->name('files.destroy');
+    Route::get('/api/files', [FilesController::class, 'fetchFiels'])->name('files.fetch');
+
 
 
     // // Manage Users
