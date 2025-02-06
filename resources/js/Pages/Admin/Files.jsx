@@ -1,12 +1,10 @@
 import React, { useState, useRef } from "react";
 import AppLayout from "@/Pages/Admin/Layouts/AppLayout";
 import { Head, Link } from "@inertiajs/react";
-
 import { FaFileAlt, FaVideo } from "react-icons/fa";
 import { MdPictureAsPdf } from "react-icons/md";
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css'; 
 import Pagination from '@/Components/Pagination';
+import { toast } from 'react-toastify';
 import FeaturedImageSelector from '@/Components/Admin/FeaturedImageSelector'; 
 
 
@@ -224,14 +222,6 @@ export default function Files({ files,pagination }) {
    return (
       <AppLayout>
          <Head title="Files" />
-         <ToastContainer
-               position="top-right"
-               autoClose={5000}
-               hideProgressBar={false}
-               newestOnTop={true}
-               closeOnClick={true}
-               pauseOnHover={true}
-         />
          <div className="row">
             <div className="col-xxl">
                <div className="card mb-12">

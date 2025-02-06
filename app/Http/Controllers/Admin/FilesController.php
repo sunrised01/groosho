@@ -13,7 +13,7 @@ class FilesController extends Controller
      * Display admin files view
      */
     public function index()
-    {
+    {        
         $files = Files::orderBy('created_at', 'desc')->paginate(12);
 
        
@@ -43,9 +43,16 @@ class FilesController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'file' => 'required|file|mimes:jpg,png,jpeg,gif,webp,mp4,avi,pdf|max:10240',
+        $validator = \Validator::make($request->all(), [
+            'file' => 'required|file|mimes:jpg,png,jpeg,gif,webp,avi,pdf|max:10240',
         ]);
+
+        if ($validator->fails()) {
+            // Return the validation errors in JSON format
+            return response()->json([
+                'errors' => $validator->errors(),
+            ], 422); // 422 is the standard code for validation errors
+        }
 
         $file = $request->file('file');
         $originalName = $file->getClientOriginalName();
