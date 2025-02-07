@@ -44,14 +44,13 @@ class FilesController extends Controller
     public function store(Request $request)
     {
         $validator = \Validator::make($request->all(), [
-            'file' => 'required|file|mimes:jpg,png,jpeg,gif,webp,avi,pdf|max:10240',
+            'file' => 'required|file|mimes:jpg,png,jpeg,gif,webp,avi,mp4,pdf',
         ]);
 
         if ($validator->fails()) {
-            // Return the validation errors in JSON format
             return response()->json([
                 'errors' => $validator->errors(),
-            ], 422); // 422 is the standard code for validation errors
+            ], 422);
         }
 
         $file = $request->file('file');

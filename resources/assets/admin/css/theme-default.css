@@ -150,7 +150,18 @@ a.bg-primary:hover, a.bg-primary:focus {
 .progress-bar {
   background-color: #696cff;
   color: #fff;
-  box-shadow: 0 2px 4px 0 rgba(105, 108, 255, 0.4);
+}
+.progress-wrapp .file-card{
+	background: #f6f7f7;
+	height: 100%;
+	width: 100%;
+	position: relative;
+}
+.progress-wrapp .progress-wrapper {
+	position: absolute;
+	top: 50%;
+	width: 88%;
+	left: 9px;
 }
 
 .list-group-item-primary {
