@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { FaFileAlt, FaVideo } from "react-icons/fa";
-import { MdPictureAsPdf, MdCheckCircle } from "react-icons/md"; 
+import { MdPictureAsPdf, MdCheckCircle } from "react-icons/md";
 
 
 
@@ -14,8 +14,7 @@ const FeaturedImageSelector = ({ onImageSelect }) => {
    const [lastPage, setLastPage] = useState('');
    const [loading, setLoading] = useState(false);
    const [totalUploadFiels, setTotalUploadFiels] = useState(0);
-   const [selectedFile, setSelectedFile] = useState([]);
-   const [isDragOver, setIsDragOver] = useState(false);
+   const [selectedFile, setSelectedFile] = useState(null);
    const [uploadProgress, setUploadProgress] = useState([]);
    const [errorFiles, setErrorFiles] = useState([]);
    const fileInputRef = useRef(null);
@@ -23,9 +22,9 @@ const FeaturedImageSelector = ({ onImageSelect }) => {
 
    const toggleModal = () => {
       setIsOpen(!isOpen);
-      setSelectedFile([]);
-   } 
-   
+      setSelectedFile(null);
+   }
+
 
    // Function to handle tab switching
    const handleTabChange = (tab) => {
@@ -59,16 +58,17 @@ const FeaturedImageSelector = ({ onImageSelect }) => {
    // Handel Load More button function
    const handleLoadMore = () => {
       if (currentPage < lastPage) {
-         setCurrentPage((prevPage) => prevPage + 1); // Go to the next page
+         setCurrentPage((prevPage) => prevPage + 1);
+         fetchFiles();
       }
    };
 
 
    // Handle file change (on file selection) and trigger upload
    const handleFileChange = (event) => {
-      const selectedFiles = Array.from(event.target.files);
-      if (selectedFiles.length > 0) {
-         uploadMultipleFilesToServer(selectedFiles);
+      const uploadedFiles = Array.from(event.target.files);
+      if (uploadedFiles.length > 0) {
+         uploadMultipleFilesToServer(uploadedFiles);
       }
    };
 
@@ -105,84 +105,98 @@ const FeaturedImageSelector = ({ onImageSelect }) => {
       setTotalUploadFiels(uploadFiles.length);
       handleTabChange('media');
       setUploadProgress(new Array(uploadFiles.length).fill({ progress: 0, uploaded: 0 }));
-  
+
       uploadFiles.reduce((prevRequest, file, index) => {
-          return prevRequest.then(() => {
-              return new Promise((resolve, reject) => {
-                  const formData = new FormData();
-                  formData.append("file", file);
-                  const csrfToken = getCsrfToken();
-  
-                  const xhr = new XMLHttpRequest();
-                  xhr.open("POST", route("files.save"), true);
-                  xhr.setRequestHeader("X-CSRF-TOKEN", csrfToken);
-  
-                  // Track the upload progress
-                  xhr.upload.onprogress = (event) => {
-                      if (event.lengthComputable) {
-                          const progress = Math.round((event.loaded / event.total) * 100);
-                          setUploadProgress((prevProgress) => {
-                              const updatedProgress = [...prevProgress];
-                              updatedProgress[index] = { progress, uploaded: 0 }; 
-                              return updatedProgress;
-                          });
-                      }
-                  };
-  
-                  // Handle the response after the request is finished
-                  xhr.onload = () => {
-                      if (xhr.status >= 200 && xhr.status < 300) {
+         return prevRequest.then(() => {
+            return new Promise((resolve, reject) => {
+               const formData = new FormData();
+               formData.append("file", file);
+               const csrfToken = getCsrfToken();
 
-                        setUploadProgress((prevProgress) => {
-                           const updatedProgress = [...prevProgress];
-                           updatedProgress[index] = { progress: 100, uploaded: 1 };
-                           return updatedProgress;
-                       });
+               const xhr = new XMLHttpRequest();
+               xhr.open("POST", route("files.save"), true);
+               xhr.setRequestHeader("X-CSRF-TOKEN", csrfToken);
+
+               // Track the upload progress
+               xhr.upload.onprogress = (event) => {
+                  if (event.lengthComputable) {
+                     const progress = Math.round((event.loaded / event.total) * 100);
+                     setUploadProgress((prevProgress) => {
+                        const updatedProgress = [...prevProgress];
+                        updatedProgress[index] = { progress, uploaded: 0 };
+                        return updatedProgress;
+                     });
+                  }
+               };
+
+               // Handle the response after the request is finished
+               xhr.onload = () => {
+                  if (xhr.status >= 200 && xhr.status < 300) {
+
+                     setUploadProgress((prevProgress) => {
+                        const updatedProgress = [...prevProgress];
+                        updatedProgress[index] = { progress: 100, uploaded: 1 };
+                        return updatedProgress;
+                     });
 
 
-                        const uploadedFile = JSON.parse(xhr.responseText);
-                        uploadedFile['uploaded'] = 1;
-                        setFiles((prevFiles) => {
-                           const updatedFiles = [...prevFiles, uploadedFile];
-                           return updatedFiles.sort((a, b) => b.id - a.id);
-                        });
-                        
-                          resolve();  
-                      } else {
-                          resolve();
-                      }
-                  };
-  
-                  xhr.onerror = () => reject(new Error("Request failed"));
-                  xhr.send(formData);
-              });
-          });
-      }, Promise.resolve()) 
-      .then(() => {
-         setUploadProgress([]);
-         setTotalUploadFiels(0);
-          console.log('All files uploaded successfully.');
-      })
-      .catch((error) => {
-          console.error('Error uploading files:', error);
-      });
-  };
+                     const uploadedFile = JSON.parse(xhr.responseText);
+                     uploadedFile['uploaded'] = 1;
+                     setFiles((prevFiles) => {
+                        const updatedFiles = [...prevFiles, uploadedFile];
+                        return updatedFiles.sort((a, b) => b.id - a.id);
+                     });
 
-  const handleImageClick = (filedata) => {      
-      setSelectedFile([filedata]);
+                     resolve();
+                  } else {
+                     resolve();
+                  }
+               };
+
+               xhr.onerror = () => reject(new Error("Request failed"));
+               xhr.send(formData);
+            });
+         });
+      }, Promise.resolve())
+         .then(() => {
+            setUploadProgress([]);
+            setTotalUploadFiels(0);
+            console.log('All files uploaded successfully.');
+         })
+         .catch((error) => {
+            console.error('Error uploading files:', error);
+         });
+   };
+
+   const handleImageClick = (filedata) => {
+      setSelectedFile(filedata);
+   };
+
+   const handleInsertFeaturedImage = () => {
+
+   }
+ 
+   const handleCopyUrl = () => {
+      const textField = document.createElement('textarea');
+      textField.innerText = selectedFile.url;
+      document.body.appendChild(textField);
+      textField.select();
+      document.execCommand('copy');
+      document.body.removeChild(textField);
    };
 
    useEffect(() => {
-      setSelectedFile([]);
+      setSelectedFile(null);
       if (files.length > 0) {
          const sortedFiles = [...files].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
          const uploadedFiles = sortedFiles.filter(file => file.uploaded === 1);
          if (uploadedFiles.length > 0) {
-            setSelectedFile(uploadedFiles.slice(0, 1));
+            setSelectedFile(uploadedFiles.slice(0));
          }
       }
    }, [files]);
 
+console.log(selectedFile);
    return (
       <div>
          <button className="btn btn-outline-secondary" onClick={toggleModal}>
@@ -259,19 +273,21 @@ const FeaturedImageSelector = ({ onImageSelect }) => {
                               id="tab2"
                               role="tabpanel"
                            >
-                              <div className="file-list mt-10">
-                                 <div className="row">
-                                 {
-                                    totalUploadFiels > 0 &&
-                                    (() => {
-                                       const fileCards = [];
-                                       for (let i = 0; i < totalUploadFiels; i++) {
-                                             if (uploadProgress[i].uploaded === 0) {
-                                                fileCards.push(
-                                                   <div key={i} className="col-cmd-2 p-5 progress-wrapp">
-                                                         <div className="file-card border rounded shadow-sm">
-                                                            <div className="progress-wrapper">
-                                                               <div className="progress">
+                              <div className="row">
+                                 <div className="col-md-9">
+                                    <div className="file-list mt-10">
+                                       <div className="row">
+                                          {
+                                             totalUploadFiels > 0 &&
+                                             (() => {
+                                                const fileCards = [];
+                                                for (let i = 0; i < totalUploadFiels; i++) {
+                                                   if (uploadProgress[i].uploaded === 0) {
+                                                      fileCards.push(
+                                                         <div key={i} className="col-cmd-2 p-5 progress-wrapp">
+                                                            <div className="file-card border rounded shadow-sm">
+                                                               <div className="progress-wrapper">
+                                                                  <div className="progress">
                                                                      <div
                                                                         className="progress-bar"
                                                                         role="progressbar"
@@ -279,80 +295,179 @@ const FeaturedImageSelector = ({ onImageSelect }) => {
                                                                      >
                                                                         {uploadProgress[i].progress}%
                                                                      </div>
+                                                                  </div>
                                                                </div>
                                                             </div>
                                                          </div>
-                                                   </div>
-                                                );
-                                             }
-                                       }
-                                       return fileCards;
-                                    })()
-                                 }
+                                                      );
+                                                   }
+                                                }
+                                                return fileCards;
+                                             })()
+                                          }
 
-                                 {files.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).map((file, index) => (
-                                    
-                                    <div
-                                       key={file.id}
-                                       className={`col-cmd-2 p-5`}
-                                    >
-                                       <div className={`file-card border rounded shadow-sm position-relative ${selectedFile.map(file => file.id).includes(file.id) ? 'border-primary selected' : ''}`}>
-                                            
-                                             {selectedFile.map(file => file.id).includes(file.id) && (
-                                                
-                                                <div className="position-absolute top-0 end-0 m-2">
-                                                   <MdCheckCircle className="text-primary" style={{ fontSize: '30px' }} />
-                                                </div>
-                                             )}
-                                             
-                                             <div className="file-card-body">
-                                                {file.type.startsWith("image") ? (
-                                                   <div className="file-thumbnail" onClick={() => handleImageClick(file)}>
-                                                      <img
-                                                         src={file.display_url}
-                                                         alt={file.name}
-                                                         className="img-fluid rounded"
-                                                      />
-                                                   </div>
-                                                ) : (
-                                                   <div className="file-icon fileicon" onClick={() => handleImageClick(file)}>
-                                                      {/* Use icons for other file types */}
-                                                      {file.type === "application/pdf" ? (
-                                                         <MdPictureAsPdf className="text-danger" style={{ fontSize: '40px' }} />
-                                                      ) : file.type.startsWith("video") ? (
-                                                         <FaVideo className="text-primary" style={{ fontSize: '40px' }} />
+                                          {files.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).map((file, index) => (
+
+                                             <div
+                                                key={file.id}
+                                                className={`col-cmd-2 p-5`}
+                                             >
+
+                                                <div className={`file-card border rounded shadow-sm position-relative ${selectedFile && selectedFile.id === file.id ? 'border-primary selected' : ''}`}>
+
+                                                   {selectedFile && selectedFile.id === file.id && (
+
+                                                      <div className="position-absolute top-0 end-0 m-2">
+                                                         <MdCheckCircle className="text-primary" style={{ fontSize: '30px' }} />
+                                                      </div>
+                                                   )}
+
+                                                   <div className="file-card-body">
+                                                      {file.type.startsWith("image") ? (
+                                                         <div className="file-thumbnail" onClick={() => handleImageClick(file)}>
+                                                            <img
+                                                               src={file.display_url}
+                                                               alt={file.name}
+                                                               className="img-fluid rounded"
+                                                            />
+                                                         </div>
                                                       ) : (
-                                                         <FaFileAlt className="text-secondary" style={{ fontSize: '40px' }} />
+                                                         <div className="file-icon fileicon" onClick={() => handleImageClick(file)}>
+                                                            {/* Use icons for other file types */}
+                                                            {file.type === "application/pdf" ? (
+                                                               <MdPictureAsPdf className="text-danger" style={{ fontSize: '40px' }} />
+                                                            ) : file.type.startsWith("video") ? (
+                                                               <FaVideo className="text-primary" style={{ fontSize: '40px' }} />
+                                                            ) : (
+                                                               <FaFileAlt className="text-secondary" style={{ fontSize: '40px' }} />
+                                                            )}
+                                                         </div>
+                                                      )}
+                                                   </div>
+                                                </div>
+
+
+                                             </div>
+                                          ))}
+
+                                       </div>
+                                    </div>
+                                    {/* Load More Button */}
+                                    <div className="load-more text-center mt-5 ">
+                                       {currentPage < lastPage && (
+                                          <button
+                                             onClick={handleLoadMore}
+                                             disabled={loading}
+                                             className="btn btn-primary"
+                                          >
+                                             {loading ? 'Loading...' : 'Load More'}
+                                          </button>
+                                       )}
+                                    </div>
+                                 </div>
+                                 <div className="col-md-3 attchment-detais">
+                                    {selectedFile && (
+                                       
+                                       <div>
+
+                                          <h5 className="modal-title">Attachment details</h5>
+
+                                          <div className="row">
+                                             <div className="col-md-4">
+                                                {selectedFile.type.startsWith("image") ? (
+                                                   <img
+                                                      src={selectedFile.display_url}
+                                                      alt={selectedFile.name}
+                                                      className="img-fluid rounded mb-3"
+                                                      style={{ maxHeight: "300px", objectFit: "contain" }}
+                                                   />
+                                                ) : (
+                                                   <div className="file-icon fileicon">
+                                                      {selectedFile.type === "application/pdf" ? (
+                                                         <MdPictureAsPdf className="text-danger" style={{ fontSize: "40px" }} />
+                                                      ) : selectedFile.type.startsWith("video") ? (
+                                                         <FaVideo className="text-primary" style={{ fontSize: "40px" }} />
+                                                      ) : (
+                                                         <FaFileAlt className="text-secondary" style={{ fontSize: "40px" }} />
                                                       )}
                                                    </div>
                                                 )}
                                              </div>
+                                             <div className="col-md-8">
+                                                <div><strong>Uploaded on:</strong>
+                                                   {new Date(selectedFile.created_at).toLocaleDateString('en-US', {
+                                                      year: 'numeric',
+                                                      dmonth: 'long',
+                                                      day: 'numeric'
+                                                   })}
+                                                </div>
+                                                <div><strong>Uploaded by:</strong> admin</div>
+                                                <div><strong>File name:</strong> {selectedFile.name}</div>
+                                                <div><strong>File type:</strong> {selectedFile.type}</div>
+                                                <div><strong>File size:</strong> {selectedFile.file_size}</div>
+                                             </div>
+                                          </div>
+
+
+                                          <div className="mt-10 mb-3">
+                                             <label className="form-label">Title:</label>
+                                             <input
+                                                type="text"
+                                                className="form-control"
+                                                name="title"
+                                                readOnly="true"
+                                                value={selectedFile.title}
+                                             />
+                                          </div>
+                                          <div className="mb-3">
+                                             <label className="form-label">Caption:</label>
+                                             <input
+                                                type="text"
+                                                className="form-control"
+                                                value={selectedFile.caption}
+                                                name="caption"
+                                                readOnly="true"
+                                             />
+                                          </div>
+                                          <div className="mb-3">
+                                             <label className="form-label">Description:</label>
+                                             <textarea
+                                                className="form-control"
+                                                value={selectedFile.description}
+                                                readOnly="true"
+                                                name="description"
+                                                rows="3"
+                                             ></textarea>
+                                          </div>
+                                          <div className="mb-3">
+                                             <label className="form-label">File URL:</label>
+                                             <input
+                                                type="text"
+                                                className="form-control"
+                                                value={selectedFile.url}
+                                                readOnly
+                                                onClick={(e) => e.target.select()}
+                                             />
+                                             <button
+                                                className="btn btn-outline-secondary mt-2"
+                                                onClick={handleCopyUrl}
+                                             >
+                                                Copy URL
+                                             </button>
+                                          </div>
+
                                        </div>
-
-                                      
-                                    </div>
-                                 ))}
-
+                                    )}
                                  </div>
                               </div>
-                              {/* Load More Button */}
-                              <div className="load-more text-center mt-5 ">
-                                 {currentPage < lastPage && (
-                                    <button
-                                       onClick={handleLoadMore}
-                                       disabled={loading}
-                                       className="btn btn-primary"
-                                    >
-                                       {loading ? 'Loading...' : 'Load More'}
-                                    </button>
-                                 )}
-                              </div>
+
+
                            </div>
                         </div>
                      </div>
                      <div className="modal-footer">
 
-                        <button type="button" className="btn btn-primary">
+                        <button type="button" className="btn btn-primary" onClick={handleInsertFeaturedImage}>
                            Insert
                         </button>
                      </div>

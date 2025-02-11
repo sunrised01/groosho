@@ -229,7 +229,7 @@ export default function Files({ files,pagination }) {
                      {/* File Upload Section */}
                      <div className="upload-section">
                         <h5>Media Library</h5>
-                        <FeaturedImageSelector onImageSelect={handleImageSelect} />
+                        {/* <FeaturedImageSelector onImageSelect={handleImageSelect} /> */}
                         <hr/>
                         <div
                            ref={dropAreaRef}
