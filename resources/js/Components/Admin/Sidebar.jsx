@@ -1,7 +1,8 @@
 import React, {useState} from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { BsHouseDoor, BsFilePost, BsBox, BsCart, BsGear, BsPeople } from 'react-icons/bs'; 
-import { FaFileAlt } from 'react-icons/fa';  // Import the new icon
+import { FaFileAlt } from 'react-icons/fa';  
+import { BsFileText } from 'react-icons/bs';
 
 
 const Sidebar = () => {
@@ -44,6 +45,16 @@ const Sidebar = () => {
             name: 'Sales', 
             icon: <BsCart />, 
             link: '/admin/sales' 
+        },
+        { 
+            name: 'Custom Post Type', 
+            icon: <BsFileText />, 
+            link: route('cpt.index'),
+            subMenu: [
+                { name: 'Overview', link: route('cpt.index') },
+                { name: 'Post Types', link: '/admin/cpt' },
+                { name: 'Taxonomies', link: '/admin/cpt' },
+            ]
         },
         { 
             name: 'Settings', 

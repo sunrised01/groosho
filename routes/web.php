@@ -8,66 +8,89 @@ use App\Http\Controllers\Admin\Auth\LoginController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\FilesController;
-
+use App\Http\Controllers\Admin\PostController;
+use App\Http\Controllers\Admin\PostTypeController;
 use App\Http\Middleware\AdminMiddleware;
 
-
+// Public Route: Home Page
 Route::get('/', function () {
     return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-        'error' => session('error')
+        'canLogin' => Route::has('login'),  
+        'canRegister' => Route::has('register'),  
+        'laravelVersion' => Application::VERSION,  
+        'phpVersion' => PHP_VERSION,  
+        'error' => session('error')  
     ]);
 });
 
-
+// Auth Routes for 'guest' middleware (only accessible to users not logged in)
 Route::middleware('guest')->group(function () {
+    // Show login form
     Route::get('admin/login', [LoginController::class, 'create'])
-        ->name('admin.login');
+        ->name('admin.login');  
+
+        // Process login request
     Route::post('admin/login', [LoginController::class, 'store'])
-        ->name('admin.post.login');
+        ->name('admin.post.login');  
 });
 
-
+// Dashboard Route (only accessible by authenticated users)
 Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+    return Inertia::render('Dashboard'); 
+})->middleware(['auth', 'verified']) ->name('dashboard');
 
-
-// Protect routes with 'admin' middleware and 'admin' prefix
+// Admin Routes (only accessible by users with 'admin' middleware)
 Route::prefix('admin')->middleware(['admin', AdminMiddleware::class])->group(function () {
-    Route::get('/', [DashboardController::class, 'index']);
+
+    // Admin Dashboard Home
+    Route::get('/', [DashboardController::class, 'index']);  
     Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('admin.dashboard');
-
-    Route::get('/posts', [DashboardController::class, 'dashboard'])->name('admin.posts');
-
-    Route::get('/settings', [SettingsController::class, 'index'])->name('admin.settings');
-    Route::post('/save-settings', [SettingsController::class, 'saveSettings'])->name('settings.save');
-
-    Route::get('/files', [FilesController::class, 'index'])->name('admin.files');
-    Route::post('/file/store', [FilesController::class, 'store'])->name('files.save');
-    Route::post('/file/update', [FilesController::class, 'update'])->name('files.update');
-    Route::delete('/file/{id}', [FilesController::class, 'destroy'])->name('files.destroy');
-    Route::get('/api/files', [FilesController::class, 'fetchFiels'])->name('files.fetch');
-
-
-
-    // // Manage Users
-    // Route::get('/users', [AdminController::class, 'users'])->name('admin.users');
-    // Route::get('/users/{id}', [AdminController::class, 'showUser'])->name('admin.showUser');
-
-    // // Other admin routes...
-    // Route::get('/settings', [AdminController::class, 'settings'])->name('admin.settings');
     
-    // // More routes can be added here as needed
+    // Settings Page for Admin
+    Route::get('/settings', [SettingsController::class, 'index'])->name('admin.settings'); 
+    Route::post('/save-settings', [SettingsController::class, 'saveSettings'])->name('settings.save');
+    
+    // File Management Routes (CRUD for file uploads)
+    Route::get('/files', [FilesController::class, 'index'])->name('admin.files');  
+    Route::post('/file/store', [FilesController::class, 'store'])->name('files.save'); 
+    Route::post('/file/update', [FilesController::class, 'update'])->name('files.update');  
+    Route::delete('/file/{id}', [FilesController::class, 'destroy'])->name('files.destroy'); 
+    Route::get('/api/files', [FilesController::class, 'fetchFiles'])->name('files.fetch'); 
+
+    // Post Management Routes (for handling different post types)
+    Route::get('{post_type}', [PostController::class, 'index'])->name('posts.index'); 
+    Route::get('{post_type}/create', [PostController::class, 'create'])->name('posts.create');  
+    Route::get('{post_type}/{post}/edit', [PostController::class, 'edit'])->name('posts.edit'); 
+    Route::put('{post_type}/{post}', [PostController::class, 'update'])->name('posts.update');  
+    Route::delete('{post_type}/{post}', [PostController::class, 'destroy'])->name('posts.destroy');  
+
+    // Custom Post Types Management Routes
+    
+    Route::get('cpt', [PostTypeController::class, 'index'])->name('cpt.index'); // CPT Overview
+    // Post Types Routes
+    Route::get('posttypes', [PostTypeController::class, 'postTypes'])->name('posttypes.view');
+    Route::get('posttype/create', [PostTypeController::class, 'create'])->name('posttype.create');
+    Route::post('posttype', [PostTypeController::class, 'store'])->name('posttype.store');
+    Route::get('posttype/{id}/edit', [PostTypeController::class, 'edit'])->name('posttype.edit');
+    Route::put('posttype/{id}', [PostTypeController::class, 'update'])->name('posttype.update');
+    Route::delete('posttype/{id}', [PostTypeController::class, 'destroy'])->name('posttype.destroy');
+
+    // Taxonomies Routes
+    Route::get('taxonomies', [PostTypeController::class, 'index'])->name('taxonomies.index');
+    Route::get('taxonomy/create', [PostTypeController::class, 'create'])->name('taxonomy.create');
+    Route::post('taxonomy', [PostTypeController::class, 'store'])->name('taxonomy.store');
+    Route::get('taxonomy/{id}/edit', [PostTypeController::class, 'edit'])->name('taxonomy.edit');
+    Route::put('taxonomy/{id}', [PostTypeController::class, 'update'])->name('taxonomy.update');
+    Route::delete('taxonomy/{id}', [PostTypeController::class, 'destroy'])->name('taxonomy.destroy');
+ 
 });
 
+// Routes for managing user profiles (auth middleware ensures user is logged in)
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require __DIR__.'/auth.php';
+// Authentication routes (defined in auth.php)
+require __DIR__.'/auth.php';  // Include the default auth routes for login, registration, etc.
