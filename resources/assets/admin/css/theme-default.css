@@ -979,4 +979,8 @@ html:not(.layout-menu-collapsed) .bg-menu-theme .menu-inner .menu-item .menu-lin
 #myTabContent{
   border-top: 1px solid #696cff !important;
 }
+.page-title {
+	margin-bottom: 0;
+	font-size: 17px;
+}
 /*# sourceMappingURL=theme-default.css.map */

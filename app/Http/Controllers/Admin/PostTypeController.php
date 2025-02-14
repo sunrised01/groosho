@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\PostType;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Log;
 
 class PostTypeController extends Controller
 {
@@ -24,7 +25,7 @@ class PostTypeController extends Controller
                              ->orWhere('label', 'like', "%{$search}%");
             })
             ->paginate(10); 
-        return Inertia::render('PostTypes/Index', [
+        return Inertia::render('Admin/PostTypes/Index', [
             'postTypes' => $postTypes,
             'links' => [
                 'prev' => $postTypes->previousPageUrl(),
@@ -54,17 +55,43 @@ class PostTypeController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'cpt_name' => 'required|alpha_dash|max:20|unique:post_types,cpt_name', 
-            'label' => 'required|string', 
-            'singular_name' => 'required|string',
-            'description' => 'required|string', 
-            'show_in_menu' => 'required|boolean' 
-        ]);
+        try {
+            // Validate the request data
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'cptName' => 'required|string|regex:/^[a-z0-9-_]{1,20}$/|unique:post_types,cpt_name',
+                'label' => 'required|string|max:255',
+                'singularName' => 'nullable|string|max:255',
+                'description' => 'nullable|string',
+                'showInMenu' => 'required|in:Yes,No',
+            ]);
 
-        PostType::create($request->all());
+            // Create and store the new post type
+            $postType = PostType::create([
+                'title' => $validated['title'],
+                'cpt_name' => $validated['cptName'],
+                'label' => $validated['label'],
+                'singular_name' => $validated['singularName'],
+                'description' => $validated['description'],
+                'show_in_menu' => $validated['showInMenu'] === 'Yes',
+            ]);
 
-        return redirect()->route('post_types.index')->with('success', 'Custom post type created successfully.');
+            // Return success response with the created post type
+            return response()->json([
+                'message' => 'Post type created successfully!',
+                'data' => $postType
+            ], 201);
+
+        } catch (\Exception $e) {
+            // Log the error for debugging purposes
+            Log::error('Error creating post type: ' . $e->getMessage());
+
+            // Return an error response with a specific message
+            return response()->json([
+                'message' => 'An error occurred while creating the post type.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

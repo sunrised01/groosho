@@ -9,7 +9,9 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\FilesController;
 use App\Http\Controllers\Admin\PostController;
+use App\Http\Controllers\Admin\CptController;
 use App\Http\Controllers\Admin\PostTypeController;
+use App\Http\Controllers\Admin\TaxonomiesController;
 use App\Http\Middleware\AdminMiddleware;
 
 // Public Route: Home Page
@@ -21,7 +23,7 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,  
         'error' => session('error')  
     ]);
-});
+});    
 
 // Auth Routes for 'guest' middleware (only accessible to users not logged in)
 Route::middleware('guest')->group(function () {
@@ -51,37 +53,42 @@ Route::prefix('admin')->middleware(['admin', AdminMiddleware::class])->group(fun
     Route::post('/save-settings', [SettingsController::class, 'saveSettings'])->name('settings.save');
     
     // File Management Routes (CRUD for file uploads)
-    Route::get('/files', [FilesController::class, 'index'])->name('admin.files');  
+    Route::get('/files', [FilesController::class, 'index'])->name('files.index');  
     Route::post('/file/store', [FilesController::class, 'store'])->name('files.save'); 
     Route::post('/file/update', [FilesController::class, 'update'])->name('files.update');  
     Route::delete('/file/{id}', [FilesController::class, 'destroy'])->name('files.destroy'); 
     Route::get('/api/files', [FilesController::class, 'fetchFiles'])->name('files.fetch'); 
 
-    // Post Management Routes (for handling different post types)
-    Route::get('{post_type}', [PostController::class, 'index'])->name('posts.index'); 
-    Route::get('{post_type}/create', [PostController::class, 'create'])->name('posts.create');  
-    Route::get('{post_type}/{post}/edit', [PostController::class, 'edit'])->name('posts.edit'); 
-    Route::put('{post_type}/{post}', [PostController::class, 'update'])->name('posts.update');  
-    Route::delete('{post_type}/{post}', [PostController::class, 'destroy'])->name('posts.destroy');  
-
     // Custom Post Types Management Routes
-    
-    Route::get('cpt', [PostTypeController::class, 'index'])->name('cpt.index'); // CPT Overview
+    Route::get('/cpt', [CptController::class, 'index'])->name('cpt.index'); // CPT Overview
+   
     // Post Types Routes
-    Route::get('posttypes', [PostTypeController::class, 'postTypes'])->name('posttypes.view');
-    Route::get('posttype/create', [PostTypeController::class, 'create'])->name('posttype.create');
-    Route::post('posttype', [PostTypeController::class, 'store'])->name('posttype.store');
-    Route::get('posttype/{id}/edit', [PostTypeController::class, 'edit'])->name('posttype.edit');
-    Route::put('posttype/{id}', [PostTypeController::class, 'update'])->name('posttype.update');
-    Route::delete('posttype/{id}', [PostTypeController::class, 'destroy'])->name('posttype.destroy');
+    Route::prefix('posttype')->group(function () {
+        Route::get('/', [PostTypeController::class, 'index'])->name('posttype.index');
+        Route::get('/create', [PostTypeController::class, 'create'])->name('posttype.create');
+        Route::post('/', [PostTypeController::class, 'store'])->name('posttype.store');
+        Route::get('{id}/edit', [PostTypeController::class, 'edit'])->name('posttype.edit');
+        Route::put('{id}', [PostTypeController::class, 'update'])->name('posttype.update');
+        Route::delete('{id}', [PostTypeController::class, 'destroy'])->name('posttype.destroy');
+    });
+    
 
     // Taxonomies Routes
-    Route::get('taxonomies', [PostTypeController::class, 'index'])->name('taxonomies.index');
-    Route::get('taxonomy/create', [PostTypeController::class, 'create'])->name('taxonomy.create');
-    Route::post('taxonomy', [PostTypeController::class, 'store'])->name('taxonomy.store');
-    Route::get('taxonomy/{id}/edit', [PostTypeController::class, 'edit'])->name('taxonomy.edit');
-    Route::put('taxonomy/{id}', [PostTypeController::class, 'update'])->name('taxonomy.update');
-    Route::delete('taxonomy/{id}', [PostTypeController::class, 'destroy'])->name('taxonomy.destroy');
+    Route::prefix('taxonomy')->group(function () {
+        Route::get('/', [TaxonomiesController::class, 'index'])->name('taxonomy.index');
+        Route::get('/create', [TaxonomiesController::class, 'create'])->name('taxonomy.create');
+        Route::post('/', [TaxonomiesController::class, 'store'])->name('taxonomy.store');
+        Route::get('{id}/edit', [TaxonomiesController::class, 'edit'])->name('taxonomy.edit');
+        Route::put('{id}', [TaxonomiesController::class, 'update'])->name('taxonomy.update');
+        Route::delete('{id}', [TaxonomiesController::class, 'destroy'])->name('taxonomy.destroy');
+    });
+
+     // Post Management Routes (for handling different post types)
+     Route::get('{post_type}', [PostController::class, 'index'])->name('posts.index'); 
+     Route::get('{post_type}/create', [PostController::class, 'create'])->name('posts.create');  
+     Route::get('{post_type}/{post}/edit', [PostController::class, 'edit'])->name('posts.edit'); 
+     Route::put('{post_type}/{post}', [PostController::class, 'update'])->name('posts.update');  
+     Route::delete('{post_type}/{post}', [PostController::class, 'destroy'])->name('posts.destroy');  
  
 });
 

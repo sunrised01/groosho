@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from "react";
 import AppLayout from '@/Pages/Admin/Layouts/AppLayout';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 
 export default function Index() {
-    // Destructure necessary data passed from Laravel (Inertia)
     const { postTypes, links, filters } = usePage().props;
-
-    // Local state for search query
     const [search, setSearch] = useState(filters.search || '');
 
     // Handle search input change
@@ -17,19 +14,23 @@ export default function Index() {
     // Handle search form submission
     const handleSearchSubmit = (e) => {
         e.preventDefault();
-        // Refresh page with updated search query
         window.location.href = `/post_types?search=${search}`;
     };
 
     return (
         <AppLayout>
-            <Head title="Custom Post Types" />
-            
+            <Head title="Post Types" />
+            <div className="row mb-4">
+                <div className="col-12 d-flex  align-items-center">
+                    <h2 className="page-title mr-2">Post Types</h2>
+                    <Link href={route('posttype.create')} className="btn btn-outline-primary">Add New Post Type</Link>
+                </div>
+            </div>
+
             <div className="row">
                 <div className="col-12">
                     <div className="card mb-4">
                         <div className="card-body">
-                            <h5 className="card-title">Custom Post Types</h5>
 
                             {/* Search Field */}
                             <form onSubmit={handleSearchSubmit} className="mb-3">

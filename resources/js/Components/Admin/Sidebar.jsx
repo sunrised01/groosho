@@ -13,47 +13,47 @@ const Sidebar = () => {
         { 
             name: 'Dashboard', 
             icon: <BsHouseDoor />, 
-            link: '/admin/dashboard' 
+            link: route('admin.dashboard'),
         },
         { 
             name: 'Files', 
             icon: <FaFileAlt />, 
-            link: '/admin/files',
+            link: route('files.index'),
         },
-        { 
-            name: 'Posts', 
-            icon: <BsFilePost />, 
-            link: '/admin/posts',
-            subMenu: [
-                { name: 'All Posts', link: '/admin/posts' },
-                { name: 'Add New Post', link: '/admin/posts/create' },
-                { name: 'Categories', link: '/admin/posts/categories' }
-            ]
-        },
-        { 
-            name: 'Products', 
-            icon: <BsBox />, 
-            link: '/admin/products',
-            subMenu: [
-                { name: 'All Posts', link: '/admin/products' },
-                { name: 'Add New Post', link: '/admin/products/create' },
-                { name: 'Categories', link: '/admin/products/categories' },
-                { name: 'Tags', link: '/admin/products/tags' }
-            ]
-        },
-        { 
-            name: 'Sales', 
-            icon: <BsCart />, 
-            link: '/admin/sales' 
-        },
+        // { 
+        //     name: 'Posts', 
+        //     icon: <BsFilePost />, 
+        //     link: route(''),
+        //     subMenu: [
+        //         { name: 'All Posts', link: '/admin/posts' },
+        //         { name: 'Add New Post', link: '/admin/posts/create' },
+        //         { name: 'Categories', link: '/admin/posts/categories' }
+        //     ]
+        // },
+        // { 
+        //     name: 'Products', 
+        //     icon: <BsBox />, 
+        //     link: '/admin/products',
+        //     subMenu: [
+        //         { name: 'All Posts', link: '/admin/products' },
+        //         { name: 'Add New Post', link: '/admin/products/create' },
+        //         { name: 'Categories', link: '/admin/products/categories' },
+        //         { name: 'Tags', link: '/admin/products/tags' }
+        //     ]
+        // },
+        // { 
+        //     name: 'Sales', 
+        //     icon: <BsCart />, 
+        //     link: '/admin/sales' 
+        // },
         { 
             name: 'Custom Post Type', 
             icon: <BsFileText />, 
             link: route('cpt.index'),
             subMenu: [
                 { name: 'Overview', link: route('cpt.index') },
-                { name: 'Post Types', link: '/admin/cpt' },
-                { name: 'Taxonomies', link: '/admin/cpt' },
+                { name: 'Post Types', link: route('posttype.index') },
+                { name: 'Taxonomies', link: route('taxonomy.index') },
             ]
         },
         { 
@@ -139,7 +139,8 @@ const Sidebar = () => {
 
             <ul className="menu-inner py-1">
                 {menuItems.map((item, index) => {
-                    const isActive = urlData.url === item.link;
+                    const fullUrl = `${window.location.origin}${urlData.url}`;
+                    const isActive = fullUrl === item.link;
 
                     return (
                         <li key={index} className={`menu-item ${isActive ? 'active' : ''}`}>
@@ -158,7 +159,8 @@ const Sidebar = () => {
                             {item.subMenu && (
                                 <ul className={`menu-sub ${isActive ? 'open' : ''}`}>
                                     {item.subMenu.map((subItem, subIndex) => {
-                                        const isSubActive = urlData.url === subItem.link;
+                                        const fullUrl = `${window.location.origin}${urlData.url}`;
+                                        const isSubActive = fullUrl === subItem.link;
                                         return (
                                             <li key={subIndex} className={`menu-item ${isSubActive ? 'active' : ''}`}>
                                                 <Link
