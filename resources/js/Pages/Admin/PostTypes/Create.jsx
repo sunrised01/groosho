@@ -1,123 +1,70 @@
 import React, { useEffect, useState } from "react";
 import AppLayout from '@/Pages/Admin/Layouts/AppLayout';
-import { Head } from '@inertiajs/react';
-import axios from 'axios';
+import { Head, useForm, Link } from '@inertiajs/react';
 
-
-export default function Create() {
-
-    const [errors, setErrors] = useState([]);
-
-    const [formData, setFormData] = useState({
-        title: "",
-        cptName: "",
-        label: "",
-        singularName: "",
-        description: "",
-        showInMenu: "Yes",
-    });
-
-    const [inputerrors, setInputErrors] = useState({
-        title: "",
-        cptName: "",
-        label: "",
+export default function Create({ errors, old }) {
+    const [localErrors, setLocalErrors] = useState({});
+    // Using the `useForm` hook from Inertia
+    const { data, setData, post, processing, reset } = useForm({
+        title: old?.title || "",
+        cptName: old?.cptName || "",
+        label: old?.label || "",
+        singularName: old?.singularName || "",
+        description: old?.description || "",
+        showInMenu: old?.showInMenu || "Yes",
     });
 
     const cptNameRegex = /^[a-z0-9-_]{1,20}$/;
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData({
-            ...formData,
-            [name]: value
-        });
-
-        if (inputerrors[name]) {
-            setInputErrors({
-                ...inputerrors,
-                [name]: ""
-            });
-        }
+        setData(name, value);  
     };
 
-    const validateForm = () => {
-        let valid = true;
-        let errorMessages = { ...inputerrors };
+    
 
-        // Title Validation
-        if (!formData.title) {
-            errorMessages.title = "Title is required.";
-            valid = false;
-        }
-
-        // CPT Name Validation
-        if (!formData.cptName) {
-            errorMessages.cptName = "CPT Name is required.";
-            valid = false;
-        } else if (formData.cptName.length > 20) {
-            errorMessages.cptName = "CPT Name must not exceed 20 characters.";
-            valid = false;
-        } else if (!cptNameRegex.test(formData.cptName)) {
-            errorMessages.cptName = "CPT Name must contain only lowercase alphanumeric characters, dashes, and underscores.";
-            valid = false;
-        }
-
-        // Label Validation
-        if (!formData.label) {
-            errorMessages.label = "Label is required.";
-            valid = false;
-        }
-
-        setInputErrors(errorMessages);
-        return valid;
-    };
-
-    const handleSubmit = async(e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
-
-        //if (validateForm()) {
-            try {
-                const response = await axios.post(route('posttype.store'), formData);
-                console.log(response.data); 
-            } catch (error) {
-            
-                if (error.response && error.response.data.errors) {
-                    setErrors(error.response.data.errors);
-                } else if (error.response && error.response.data.message) {
-                    setErrors([{ general: error.response.data.message }]);
-                } else {
-                    setErrors([{ general: 'An error occurred while creating the post type.' }]);
-                }
-            }
-        //}
+            post(route('posttype.store'), {
+                onFinish: () => {
+                   //reset(); 
+                },
+            });
     };
 
-    const removeError = (index) => {
-        const newErrors = [...errors];
-        newErrors.splice(index, 1); 
-        setErrors(newErrors);        
-    };
-    console.log(errors);
+    useEffect(() => {
+        setLocalErrors(errors);  // Set errors to local state whenever props change
+    }, [errors]);
 
+
+    const removeError = (key) => {
+        const newErrors = { ...localErrors };  // Copy errors
+        delete newErrors[key];                 // Remove specific error by key
+        setLocalErrors(newErrors);             // Update the localErrors state
+    };
+    
     return (
         <AppLayout>
             <Head title="Post Types" />
             <div className="row mb-4">
                 <div className="col-12 d-flex align-items-center">
                     <h2 className="page-title mr-2">Create New Post Type</h2>
+                    <Link href={route('posttype.create')} className="btn btn-outline-primary">Add New Post Type</Link>
+
                 </div>
             </div>
-           {errors.length > 0 && (
+
+            {Object.keys(localErrors).length > 0 && (
                 <div>
-                    {errors.map((error, index) => (
+                    {Object.keys(localErrors).map((errorKey, index) => (
                         <div key={index} className="alert alert-danger alert-dismissible fade show">
                             <button
                                 type="button"
                                 className="btn-close"
-                                onClick={() => removeError(index)}
                                 aria-label="Close"
+                                onClick={() => removeError(errorKey)}  // Dynamically remove error
                             ></button>
-                            <p className="m-0">{error.general}</p>
+                            <p className="m-0">{localErrors[errorKey]}</p>
                         </div>
                     ))}
                 </div>
@@ -135,11 +82,10 @@ export default function Create() {
                                         id="title"
                                         name="title"
                                         className="form-control"
-                                        value={formData.title}
+                                        value={data.title}
                                         onChange={handleChange}
                                     />
                                     <small className="form-text text-muted">This will be the title of the post type.</small>
-                                    {inputerrors.title && <div className="text-danger">{inputerrors.title}</div>}
                                 </div>
 
                                 <div className="mb-3">
@@ -149,11 +95,10 @@ export default function Create() {
                                         id="cptName"
                                         name="cptName"
                                         className="form-control"
-                                        value={formData.cptName}
+                                        value={data.cptName}
                                         onChange={handleChange}
                                     />
                                     <small className="form-text text-muted">Must not exceed 20 characters and may only contain lowercase alphanumeric characters, dashes, and underscores.</small>
-                                    {inputerrors.cptName && <div className="text-danger">{inputerrors.cptName}</div>}
                                 </div>
 
                                 <div className="mb-3">
@@ -163,11 +108,10 @@ export default function Create() {
                                         id="label"
                                         name="label"
                                         className="form-control"
-                                        value={formData.label}
+                                        value={data.label}
                                         onChange={handleChange}
                                     />
                                     <small className="form-text text-muted">Name of the post type shown in the menu (usually plural).</small>
-                                    {inputerrors.label && <div className="text-danger">{inputerrors.label}</div>}
                                 </div>
 
                                 <div className="mb-3">
@@ -177,7 +121,7 @@ export default function Create() {
                                         id="singularName"
                                         name="singularName"
                                         className="form-control"
-                                        value={formData.singularName}
+                                        value={data.singularName}
                                         onChange={handleChange}
                                     />
                                     <small className="form-text text-muted">Name for one object of this post type.</small>
@@ -189,7 +133,7 @@ export default function Create() {
                                         id="description"
                                         name="description"
                                         className="form-control"
-                                        value={formData.description}
+                                        value={data.description}
                                         onChange={handleChange}
                                     />
                                     <small className="form-text text-muted">A short descriptive summary of what the post type is.</small>
@@ -201,7 +145,7 @@ export default function Create() {
                                         id="showInMenu"
                                         name="showInMenu"
                                         className="form-control"
-                                        value={formData.showInMenu}
+                                        value={data.showInMenu}
                                         onChange={handleChange}
                                     >
                                         <option value="Yes">Yes</option>
@@ -210,7 +154,7 @@ export default function Create() {
                                     <small className="form-text text-muted">Show this post type in its own top-level menu. "Show UI" must be true.</small>
                                 </div>
 
-                                <button type="submit" className="btn btn-primary">Create Post Type</button>
+                                <button type="submit" className="btn btn-primary" disabled={processing}>Create Post Type</button>
                             </form>
                         </div>
                     </div>

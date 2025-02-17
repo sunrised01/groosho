@@ -15,9 +15,10 @@ return new class extends Migration
             $table->id();
             $table->string('title')->unique();
             $table->string('cpt_name', 20)->unique();
+            $table->string('label'); 
             $table->string('singular_name'); 
-            $table->text('description');
-            $table->boolean('show_in_menu')->default(true); 
+            $table->text('description')->nullable();
+            $table->enum('show_in_menu', ['Yes', 'No'])->default('Yes');
             $table->timestamps();
         });
     }

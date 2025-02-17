@@ -56,41 +56,40 @@ class PostTypeController extends Controller
     public function store(Request $request)
     {
         try {
-            // Validate the request data
             $validated = $request->validate([
-                'title' => 'required|string|max:255',
+                'title' => 'required|string|max:255|unique:post_types,title',
                 'cptName' => 'required|string|regex:/^[a-z0-9-_]{1,20}$/|unique:post_types,cpt_name',
                 'label' => 'required|string|max:255',
                 'singularName' => 'nullable|string|max:255',
                 'description' => 'nullable|string',
-                'showInMenu' => 'required|in:Yes,No',
             ]);
 
-            // Create and store the new post type
             $postType = PostType::create([
                 'title' => $validated['title'],
                 'cpt_name' => $validated['cptName'],
                 'label' => $validated['label'],
                 'singular_name' => $validated['singularName'],
                 'description' => $validated['description'],
-                'show_in_menu' => $validated['showInMenu'] === 'Yes',
+                'show_in_menu' => $validated['showInMenu'],
             ]);
+            
+            return redirect()->route('posttype.edit', $postType->id)->with('success', 'Post type created successfully!');
 
-            // Return success response with the created post type
-            return response()->json([
-                'message' => 'Post type created successfully!',
-                'data' => $postType
-            ], 201);
-
+            
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return Inertia::render('Admin/PostTypes/Create', [
+                'errors' => $e->errors(),
+                'formData' => $request->all(),
+            ]);
+            
         } catch (\Exception $e) {
             // Log the error for debugging purposes
             Log::error('Error creating post type: ' . $e->getMessage());
 
-            // Return an error response with a specific message
-            return response()->json([
-                'message' => 'An error occurred while creating the post type.',
-                'error' => $e->getMessage()
-            ], 500);
+            return Inertia::render('Admin/PostTypes/Create', [
+                'errors' => ['general' => $e->getMessage()],
+                'formData' => $request->all(),
+            ]);
         }
     }
 
@@ -117,18 +116,43 @@ class PostTypeController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'cpt_name' => 'required|alpha_dash|max:20|unique:post_types,cpt_name,' . $id, 
-            'label' => 'required|string', 
-            'singular_name' => 'required|string', 
-            'description' => 'required|string', 
-            'show_in_menu' => 'required|boolean' 
-        ]);
-
         $postType = PostType::findOrFail($id);
 
-        $postType->update($request->all());
+        try {
 
-        return redirect()->route('post_types.index')->with('success', 'Custom post type updated successfully.');
+            // Validate incoming request
+            $validated = $request->validate([
+                'title' => 'required|alpha_dash|max:20|unique:post_types,title,' . $id,
+                'cpt_name' => 'required|alpha_dash|max:20|unique:post_types,cpt_name,' . $id,
+                'label' => 'required|string',
+                'singular_name' => 'required|string',
+                'description' => 'nullable|string',
+                
+            ]);
+            
+            // Update the PostType with validated data
+            $postType->update($validated);
+
+            // Redirect with success message using Inertia
+            return redirect()->route('posttype.edit', $id)->with('success', 'Custom post type updated successfully.');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return Inertia::render('Admin/PostTypes/Edit', [
+                'errors' => $e->errors(),
+                'formData' => $request->all(),
+                'postType' => $postType,
+            ]);
+            
+        } catch (\Exception $e) {
+            // Log the error for debugging purposes
+            Log::error('Error creating post type: ' . $e->getMessage());
+
+            return Inertia::render('Admin/PostTypes/Edit', [
+                'errors' => ['general' => $e->getMessage()],
+                'formData' => $request->all(),
+                'postType' => $postType,
+            ]);
+
+        }
     }
 }

@@ -8,6 +8,13 @@ import { BsFileText } from 'react-icons/bs';
 const Sidebar = () => {
     const urlData = usePage();
 
+
+    // Function to extract the path after '/admin/'
+    const getPathAfterAdmin = (url) => {
+        const match = url.match(/\/admin\/([^/]+)/);
+        return match ? match[1] : '';
+    };
+
      // Array of menu items
      const menuItems = [
         { 
@@ -137,50 +144,59 @@ const Sidebar = () => {
 
             <div className="menu-inner-shadow"></div>
 
-            <ul className="menu-inner py-1">
-                {menuItems.map((item, index) => {
-                    const fullUrl = `${window.location.origin}${urlData.url}`;
-                    const isActive = fullUrl === item.link;
+                <ul className="menu-inner py-1">
+                    {menuItems.map((item, index) => {
+                        const CurrentUrl = `${window.location.origin}${urlData.url}`;
+                        
+                        const isParentActive = CurrentUrl === item.link || 
+                        (item.subMenu && item.subMenu.some(subItem => {
+                            const subItemUrl = `${subItem.link}`;
+                            const currentPath = getPathAfterAdmin(CurrentUrl);
+                            const subItemPath = getPathAfterAdmin(subItemUrl);
+                            return CurrentUrl === subItemUrl || 
+                                (currentPath === subItemPath);
+                        }));
 
-                    return (
-                        <li key={index} className={`menu-item ${isActive ? 'active' : ''}`}>
-                            
-                            <Link
-                                href={item.link}
-                                className="menu-link"
-                                aria-label={`Navigate to ${item.name}`}
-                            >
-                                <span className="menu-icon">{item.icon}</span>
-                                <div>{item.name}</div>
-                            </Link>
-                           
+                        return (
+                            <li key={index} className={`menu-item ${isParentActive ? 'active' : ''}`}>
+                                <Link
+                                    href={item.link}
+                                    className="menu-link"
+                                    aria-label={`Navigate to ${item.name}`}
+                                >
+                                    <span className="menu-icon">{item.icon}</span>
+                                    <div>{item.name}</div>
+                                </Link>
 
-                            {/* Submenu handling */}
-                            {item.subMenu && (
-                                <ul className={`menu-sub ${isActive ? 'open' : ''}`}>
-                                    {item.subMenu.map((subItem, subIndex) => {
-                                        const fullUrl = `${window.location.origin}${urlData.url}`;
-                                        const isSubActive = fullUrl === subItem.link;
-                                        return (
-                                            <li key={subIndex} className={`menu-item ${isSubActive ? 'active' : ''}`}>
-                                                <Link
-                                                    href={subItem.link}
-                                                    className="menu-link"
-                                                    aria-label={`Navigate to ${subItem.name}`}
-                                                >
-                                                    <div>{subItem.name}</div>
-                                                </Link>
-                                            </li>
-                                        );
-                                    })}
-                                </ul>
-                            )}
-                        </li>
-                    );
-                })}
+                                {/* Submenu handling */}
+                                {item.subMenu && (
+                                    <ul className={`menu-sub ${isParentActive ? 'open' : ''}`}>
+                                        {item.subMenu.map((subItem, subIndex) => {
+                                            const subItemUrl = `${subItem.link}`;
+                                            const currentPath = getPathAfterAdmin(CurrentUrl);
+                                            const subItemPath = getPathAfterAdmin(subItemUrl);
+                                        
+                                            const isSubActive = CurrentUrl === subItemUrl || currentPath === subItemPath;
+                                        
+                                            return (
+                                                <li key={subIndex} className={`menu-item ${isSubActive ? 'active' : ''}`}>
+                                                    <Link
+                                                        href={subItem.link}
+                                                        className="menu-link"
+                                                        aria-label={`Navigate to ${subItem.name}`}
+                                                    >
+                                                        <div>{subItem.name}</div>
+                                                    </Link>
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                )}
+                            </li>
+                        );
+                    })}
+                </ul>
 
-
-            </ul>
         </aside>
     );
 };
