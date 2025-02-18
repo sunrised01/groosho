@@ -13,7 +13,7 @@ class PostType extends Model
     **/
 
     protected $fillable = [
-        'title', 'cpt_name', 'label', 'singular_name', 'description', 'show_in_menu'
+        'title', 'cpt_name', 'author', 'singular_name', 'description', 'show_in_menu'
     ];
 
 }

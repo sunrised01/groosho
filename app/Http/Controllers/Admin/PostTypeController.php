@@ -18,22 +18,52 @@ class PostTypeController extends Controller
      */
     public function index(Request $request)
     {
+        // Extract filters and pagination from request
         $search = $request->input('search', '');
-        $postTypes = PostType::query()
-            ->when($search, function ($query, $search) {
-                return $query->where('cpt_name', 'like', "%{$search}%")
-                             ->orWhere('label', 'like', "%{$search}%");
-            })
-            ->paginate(10); 
+        $perPage = $request->input('per_page', 10);
+        $orderBy = $request->input('order_by', 'asc');
+        $orderColumn = $request->input('order_column', 'title');
+        $dateFilter = $request->input('date_filter', 'all');
+        $status = $request->input('status', 'published');
+
+        // Build query with filters
+        $query = PostType::query();
+
+        // Search filter
+        if (!empty($search)) {
+            $query->where('title', 'like', "%{$search}%")
+                  ->orWhere('cpt_name', 'like', "%{$search}%");
+        }
+
+        // Date filter
+        if ($dateFilter !== 'all') {
+            $startDate = now()->startOfMonth();
+            $endDate = now()->endOfMonth();
+
+            if ($dateFilter === 'last_month') {
+                $startDate = now()->subMonth()->startOfMonth();
+                $endDate = now()->subMonth()->endOfMonth();
+            }
+
+            $query->whereBetween('created_at', [$startDate, $endDate]);
+        }
+
+        // Order by filter
+        $query->orderBy($orderColumn, $orderBy);
+
+        // Paginate the results
+        $postTypes = $query->paginate($perPage);
+
+
         return Inertia::render('Admin/PostTypes/Index', [
             'postTypes' => $postTypes,
-            'links' => [
-                'prev' => $postTypes->previousPageUrl(),
-                'next' => $postTypes->nextPageUrl(),
+            'pagination' => [
+                'current_page' => $postTypes->currentPage(),
+                'last_page' => $postTypes->lastPage(),
+                'per_page' => $postTypes->perPage(),
+                'total' => $postTypes->total(),
             ],
-            'filters' => [
-                'search' => $search,
-            ]
+            'filters' => ['search' => $search, 'per_page' => $perPage, 'order_by' => $orderBy, 'order_column' => $orderColumn, 'date_filter' => $dateFilter, 'status' => $status],
         ]);
     }
 
@@ -58,23 +88,22 @@ class PostTypeController extends Controller
         try {
             $validated = $request->validate([
                 'title' => 'required|string|max:255|unique:post_types,title',
-                'cptName' => 'required|string|regex:/^[a-z0-9-_]{1,20}$/|unique:post_types,cpt_name',
-                'label' => 'required|string|max:255',
-                'singularName' => 'nullable|string|max:255',
+                'cpt_name' => 'required|string|regex:/^[a-z0-9-_]{1,20}$/|unique:post_types,cpt_name',
+                'singular_name' => 'nullable|string|max:255',
                 'description' => 'nullable|string',
             ]);
 
+
             $postType = PostType::create([
-                'title' => $validated['title'],
-                'cpt_name' => $validated['cptName'],
-                'label' => $validated['label'],
-                'singular_name' => $validated['singularName'],
-                'description' => $validated['description'],
-                'show_in_menu' => $validated['showInMenu'],
+                'title' => $request->title,
+                'cpt_name' => $request->cpt_name,
+                'author' => auth()->user()->id,
+                'singular_name' => $request->singular_name,
+                'description' => $request->description,
+                'show_in_menu' => $request->show_in_menu,
             ]);
             
             return redirect()->route('posttype.edit', $postType->id)->with('success', 'Post type created successfully!');
-
             
         } catch (\Illuminate\Validation\ValidationException $e) {
             return Inertia::render('Admin/PostTypes/Create', [
@@ -124,7 +153,6 @@ class PostTypeController extends Controller
             $validated = $request->validate([
                 'title' => 'required|alpha_dash|max:20|unique:post_types,title,' . $id,
                 'cpt_name' => 'required|alpha_dash|max:20|unique:post_types,cpt_name,' . $id,
-                'label' => 'required|string',
                 'singular_name' => 'required|string',
                 'description' => 'nullable|string',
                 

@@ -1,12 +1,32 @@
+import React, { useState, useEffect } from "react";
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import Dropdown from '@/Components/Dropdown';
 import NavLink from '@/Components/NavLink';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 import { Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import NProgress from "nprogress";  // Import NProgress
+import "nprogress/nprogress.css";   
 
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
+
+    useEffect(() => {
+        // Start NProgress on page load (inertia visit)
+        Inertia.on("start", () => NProgress.start());
+
+        // Stop NProgress on page load completion (inertia finish)
+        Inertia.on("finish", () => NProgress.done());
+
+        // Optionally, add events for page errors or failures
+        Inertia.on("error", () => NProgress.done());
+
+        // Return cleanup function to avoid memory leaks
+        return () => {
+            Inertia.off("start");
+            Inertia.off("finish");
+            Inertia.off("error");
+        };
+    }, []);
 
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);

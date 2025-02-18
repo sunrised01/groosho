@@ -5,8 +5,6 @@ import { FaFileAlt, FaVideo } from "react-icons/fa";
 import { MdPictureAsPdf } from "react-icons/md";
 import Pagination from '@/Components/Pagination';
 import { toast } from 'react-toastify';
-import FeaturedImageSelector from '@/Components/Admin/FeaturedImageSelector'; 
-
 
 
 export default function Files({ files,pagination }) {

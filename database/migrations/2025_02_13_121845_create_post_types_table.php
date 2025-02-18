@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('title')->unique();
             $table->string('cpt_name', 20)->unique();
-            $table->string('label'); 
+            $table->integer('author');
             $table->string('singular_name'); 
             $table->text('description')->nullable();
             $table->enum('show_in_menu', ['Yes', 'No'])->default('Yes');
