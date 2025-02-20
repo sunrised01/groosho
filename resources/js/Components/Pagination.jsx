@@ -1,27 +1,35 @@
 import React from 'react';
 import { Link } from "@inertiajs/react";
 
-const Pagination = ({ currentPage, lastPage, onPageChange }) => {
+const Pagination = ({ currentPage, lastPage, filters }) => {
   
+  // Function to generate the query string with filters
+  const generateLink = (pageNumber) => {
+    const url = new URL(window.location.href); // Get the current URL
+    url.searchParams.set('page', pageNumber); // Set the page number in the query string
+
+    // Append any other filters to the query string
+    Object.keys(filters).forEach((key) => {
+      if (filters[key]) {
+        url.searchParams.set(key, filters[key]);
+      }
+    });
+
+    return url.toString(); // Return the updated URL
+  };
+
   return (
     <div className="pagination">
       {/* Previous Page Link */}
-    
       {currentPage <= 1 ? (
-        <button
-            className="btn btn-outline-secondary"
-            disabled
-        >
-            Previous
+        <button className="btn btn-outline-secondary" disabled>
+          Previous
         </button>
-        ) : (
-        <Link
-            className="btn btn-outline-secondary"
-            href={`?page=${currentPage - 1}`}
-        >
-            Previous
+      ) : (
+        <Link className="btn btn-outline-secondary" href={generateLink(currentPage - 1)} as="button">
+          Previous
         </Link>
-        )}
+      )}
 
       {/* Page Numbers Links */}
       {[...Array(lastPage)].map((_, index) => {
@@ -35,19 +43,15 @@ const Pagination = ({ currentPage, lastPage, onPageChange }) => {
 
         return (
           <React.Fragment key={pageNumber}>
-            {/* Only show the page number or ellipsis if necessary */}
             {showPage ? (
               <Link
-                href={`?page=${pageNumber}`}
-                className={`btn btn-outline-secondary mx-1 ${
-                  currentPage === pageNumber ? 'active' : ''
-                }`}
-               
+                href={generateLink(pageNumber)}
+                className={`btn btn-outline-secondary mx-1 ${currentPage === pageNumber ? 'active' : ''}`}
+                as="button"
               >
                 {pageNumber}
               </Link>
             ) : (
-              // Show ellipsis if we are skipping pages
               (pageNumber === 4 || pageNumber === lastPage - 3) && (
                 <span className="btn btn-outline-secondary mx-1">...</span>
               )
@@ -58,20 +62,14 @@ const Pagination = ({ currentPage, lastPage, onPageChange }) => {
 
       {/* Next Page Link */}
       {currentPage === lastPage ? (
-        <button
-            className="btn btn-outline-secondary"
-            disabled
-        >
-            Next
+        <button className="btn btn-outline-secondary" disabled>
+          Next
         </button>
-        ) : (
-        <Link
-            className="btn btn-outline-secondary"
-            href={`?page=${currentPage + 1}`}
-        >
-            Next
+      ) : (
+        <Link className="btn btn-outline-secondary" href={generateLink(currentPage + 1)} as="button">
+          Next
         </Link>
-        )}
+      )}
     </div>
   );
 };

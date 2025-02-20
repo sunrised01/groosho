@@ -7,20 +7,19 @@ import Pagination from '@/Components/Pagination';
 import { FaArrowUp, FaArrowDown } from 'react-icons/fa'; 
 
 export default function Index() {
-    const { postTypes, filters, pagination } = usePage().props;
-
+    const { postTypes, filters, pagination, months } = usePage().props;
+    console.log(filters);
     // Initialize state for filters from props
-    const [search, setSearch] = useState(filters.search || '');
     const [currentPage] = useState(pagination.current_page);
     const [lastPage] = useState(pagination.last_page);
     const [selectedRows, setSelectedRows] = useState([]);
     const [dateFilter, setDateFilter] = useState(filters.dateFilter || 'all');
+    const [searchFilter, setSearchFilter] = useState(filters.s || '');
+    const [perPage] = useState(filters.per_page || 10);
    
-    console.log(filters);
-
     // Handle search input change
     const handleSearchChange = (e) => {
-        setSearch(e.target.value);
+        setSearchFilter(encodeURIComponent(e.target.value));
     };
 
     // Handle row selection
@@ -69,7 +68,7 @@ export default function Index() {
             <div className="row mb-4">
                 <div className="col-12 d-flex align-items-center">
                     <h2 className="page-title mr-2">Post Types</h2>
-                    <Link href={route('posttype.create')} className="btn btn-outline-primary">Add New Post Type</Link>
+                    <Link href={route('posttype.create')} className="btn btn-outline-primary">Add New Custom Post Type</Link>
                 </div>
             </div>
 
@@ -94,16 +93,25 @@ export default function Index() {
                         
                     </div>
                     {/* Search Field */}
-                    <form className="d-flex">
+                    <div className="d-flex">
                         <input
                             type="text"
                             className="form-control"
                             placeholder="Search by Title or CPT Name"
-                            value={search}
+                            defaultValue={searchFilter}
                             onChange={handleSearchChange}
                         />
-                        <button type="submit" className="btn btn-primary ms-2">Search</button>
-                    </form>
+                        <Link
+                            as="button"
+                            href={route('posttype.index', {
+                                ...filters,  
+                                s: searchFilter 
+                            })}
+                            className="btn btn-primary ms-2"
+                        >
+                            Search
+                        </Link>
+                    </div>
                 </div>
             </div>
 
@@ -128,18 +136,22 @@ export default function Index() {
                                     <select 
                                         className="form-select me-2" 
                                         style={{ width: '200px' }} 
-                                        value={filters.dateFilter} 
+                                        value={dateFilter} 
                                         onChange={(e) => setDateFilter(e.target.value)} 
                                     >
                                         <option value="all">All Dates</option>
-                                        <option value="this_month">This Month</option>
-                                        <option value="last_month">Last Month</option>
+                                        {months.map((month) => (
+                                            <option key={month.value} value={month.value}>
+                                                {month.label}
+                                            </option>
+                                        ))}
                                     </select>
 
                                     <Link
+                                        as="button"
                                         href={route('posttype.index', {
                                             ...filters,  
-                                            dateFilter: dateFilter 
+                                            date_filter: dateFilter 
                                         })}
                                         className="btn btn-outline-primary"
                                     >
@@ -157,7 +169,7 @@ export default function Index() {
                                                     type="button"
                                                     className="btn btn-outline-primary dropdown-toggle"
                                                 >
-                                                    {filters.per_page}
+                                                    {perPage}
 
                                                     
                                                 </button>
@@ -200,14 +212,14 @@ export default function Index() {
                             <table className="table table-striped">
                                 <thead>
                                     <tr>
-                                        <th>
+                                        <th style={{ width: '15px' }}>
                                             <input
                                                 type="checkbox"
                                                 onChange={handleSelectAll}
                                                 checked={selectedRows.length === postTypes.data.length}
                                             />
                                         </th>
-                                        <th>
+                                        <th style={{ width: '250px' }}>
                                             
                                             <div className="d-flex align-items-center">
                                                 <span className="me-3">Title</span>
@@ -325,12 +337,11 @@ export default function Index() {
                                                 </Link>
                                             </div>
                                         </th>
-                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {postTypes.data.map((postType) => (
-                                        <tr key={postType.id}>
+                                        <tr key={postType.id} className="position-relative">
                                             <td>
                                                 <input
                                                     type="checkbox"
@@ -338,13 +349,37 @@ export default function Index() {
                                                     onChange={() => handleRowSelection(postType.id)}
                                                 />
                                             </td>
-                                            <td>{postType.title}</td>
+                                            <td >
+                                            <Link href={`/posttype/${postType.id}/edit`} className="text-decoration-none fw-bold">
+                                                {postType.title}
+                                            </Link>
+
+
+                                                <div className="action-icons ">
+                                                    <span className="edit">
+                                                        <Link href={`/posttype/${postType.id}/edit`} className="text-primary mx-2"  style={{ fontSize: '13px' }}>
+                                                            Edit
+                                                        </Link>
+                                                        | 
+                                                    </span>
+                                                    <span class="trash ms-2">
+                                                        <Link
+                                                            as="button"
+                                                            method="delete"
+                                                            href={`/posttype/${postType.id}/delete`}
+                                                            className="text-danger"
+                                                            style={{ fontSize: '13px' }}
+                                                        >
+                                                            Trash
+                                                        </Link>
+                                                    </span>
+                                                
+                                                </div>
+                                            </td>
                                             <td>{postType.cpt_name}</td>
                                             <td>{postType.singular_name}</td>
                                             <td>{postType.show_in_menu ? 'Yes' : 'No'}</td>
-                                            <td>
-                                                <a href={`/posttype/${postType.id}/edit`} className="btn btn-secondary btn-sm">Edit</a>
-                                            </td>
+                                           
                                         </tr>
                                     ))}
                                 </tbody>
@@ -355,6 +390,7 @@ export default function Index() {
                                 <Pagination
                                     currentPage={currentPage}
                                     lastPage={lastPage}
+                                    filters={filters}
                                 />
                             </div>
                             

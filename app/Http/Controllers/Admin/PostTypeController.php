@@ -19,32 +19,40 @@ class PostTypeController extends Controller
     public function index(Request $request)
     {
         // Extract filters and pagination from request
-        $search = $request->input('search', '');
+        $search = urldecode($request->input('s', ''));
         $perPage = $request->input('per_page', 10);
         $orderBy = $request->input('order_by', 'asc');
         $orderColumn = $request->input('order_column', 'title');
         $dateFilter = $request->input('date_filter', 'all');
         $status = $request->input('status', 'published');
-
+        
         // Build query with filters
         $query = PostType::query();
 
-        // Search filter
+       // Search filter
         if (!empty($search)) {
-            $query->where('title', 'like', "%{$search}%")
-                  ->orWhere('cpt_name', 'like', "%{$search}%");
+            // Split the search term into individual words
+            $words = explode(' ', $search);
+            
+            // Build the query for each word
+            foreach ($words as $word) {
+                $query->orWhere(function ($q) use ($word) {
+                    $q->where('title', 'like', "%{$word}%")
+                      ->orWhere('cpt_name', 'like', "%{$word}%");
+                });
+            }
         }
+       
 
         // Date filter
         if ($dateFilter !== 'all') {
-            $startDate = now()->startOfMonth();
-            $endDate = now()->endOfMonth();
-
-            if ($dateFilter === 'last_month') {
-                $startDate = now()->subMonth()->startOfMonth();
-                $endDate = now()->subMonth()->endOfMonth();
-            }
-
+            // Parse the date filter, expected format: "YYYY-MM"
+            list($year, $month) = explode('-', $dateFilter);
+    
+            // Set the start and end dates for the selected month
+            $startDate = \Carbon\Carbon::create($year, $month, 1)->startOfMonth();
+            $endDate = \Carbon\Carbon::create($year, $month, 1)->endOfMonth();
+    
             $query->whereBetween('created_at', [$startDate, $endDate]);
         }
 
@@ -54,6 +62,16 @@ class PostTypeController extends Controller
         // Paginate the results
         $postTypes = $query->paginate($perPage);
 
+        // Get unique months from the created_at field (Group by Year and Month)
+        $months = PostType::selectRaw('YEAR(created_at) as year, MONTH(created_at) as month')
+        ->groupBy('year', 'month')
+        ->orderByDesc('year')
+        ->orderByDesc('month')
+        ->get()
+        ->map(function ($item) {
+            $monthName = \Carbon\Carbon::create($item->year, $item->month, 1)->format('M Y');
+            return ['value' => "{$item->year}-{$item->month}", 'label' => $monthName];
+        });
 
         return Inertia::render('Admin/PostTypes/Index', [
             'postTypes' => $postTypes,
@@ -63,7 +81,8 @@ class PostTypeController extends Controller
                 'per_page' => $postTypes->perPage(),
                 'total' => $postTypes->total(),
             ],
-            'filters' => ['search' => $search, 'per_page' => $perPage, 'order_by' => $orderBy, 'order_column' => $orderColumn, 'date_filter' => $dateFilter, 'status' => $status],
+            'filters' => $request->only(['s', 'per_page', 'order_by', 'order_column', 'date_filter', 'status']),
+            'months' => $months,
         ]);
     }
 
