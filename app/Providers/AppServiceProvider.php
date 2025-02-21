@@ -31,6 +31,7 @@ class AppServiceProvider extends ServiceProvider
                     // You can add other session flash data if needed
                 ];
             },
+            'session_expiry_time' => config('session.lifetime'),
         ]);
     }
 }

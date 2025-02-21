@@ -4,6 +4,7 @@ import Dropdown from '@/Components/Dropdown';
 import NavLink from '@/Components/NavLink';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 import { Link, usePage } from '@inertiajs/react';
+import { Inertia } from '@inertiajs/inertia'; 
 import NProgress from "nprogress";  // Import NProgress
 import "nprogress/nprogress.css";   
 

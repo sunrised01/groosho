@@ -8,7 +8,7 @@ import { FaArrowUp, FaArrowDown } from 'react-icons/fa';
 
 export default function Index() {
     const { postTypes, filters, pagination, months } = usePage().props;
-    console.log(filters);
+ 
     // Initialize state for filters from props
     const [currentPage] = useState(pagination.current_page);
     const [lastPage] = useState(pagination.last_page);
@@ -362,7 +362,7 @@ export default function Index() {
                                                         </Link>
                                                         | 
                                                     </span>
-                                                    <span class="trash ms-2">
+                                                    <span className="trash ms-2">
                                                         <Link
                                                             as="button"
                                                             method="delete"

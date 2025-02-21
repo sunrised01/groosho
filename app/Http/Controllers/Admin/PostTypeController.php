@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\PostType;
+use App\Models\User;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Log;
 
@@ -93,7 +94,11 @@ class PostTypeController extends Controller
      */
     public function create()
     {
-        return Inertia::render('Admin/PostTypes/Create');
+        $users = User::select('id', 'name')->get();
+
+        return Inertia::render('Admin/PostTypes/Create', [
+            'users' => $users
+        ]);
     }
 
     /**
@@ -108,7 +113,7 @@ class PostTypeController extends Controller
             $validated = $request->validate([
                 'title' => 'required|string|max:255|unique:post_types,title',
                 'cpt_name' => 'required|string|regex:/^[a-z0-9-_]{1,20}$/|unique:post_types,cpt_name',
-                'singular_name' => 'nullable|string|max:255',
+                'singular_name' => 'required|string|max:255|unique:post_types,singular_name',
                 'description' => 'nullable|string',
             ]);
 
