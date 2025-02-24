@@ -2,19 +2,19 @@ import React, { useEffect, useState } from "react";
 import AppLayout from '@/Pages/Admin/Layouts/AppLayout';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { FaChevronDown, FaChevronUp, FaEye, FaMapPin, FaCalendar } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 
 
 export default function Create({ errors, old, users }) {
+   
     const current_user = usePage().props.auth.user;
     const [localErrors, setLocalErrors] = useState({});
     const [activeSections, setActiveSections] = useState({
         'sb-publish': true,
-        'sb-test': true,
     });
     const [isOpenStatusBox, setIsOpenStatusBox] = useState(false);
     const [isOpenVisibilityBox, setIsOpenVisibilityBox] = useState(false);
     const [support, setSupports] = useState(['title', 'editor']);
-    
     
     // UseForm hook initialization
     const { data, setData, post, processing, reset } = useForm({
@@ -29,6 +29,7 @@ export default function Create({ errors, old, users }) {
     });
 
     const [visibility, setVisibility] = useState(data.visibility);
+    const [status, setStatus] = useState(data.status);
 
     const handleVisibilityChange = (e) => {
         const { value } = e.target;
@@ -36,8 +37,14 @@ export default function Create({ errors, old, users }) {
     }
 
     const updateVisibility = () => {
-        setData('visibility', visibility);
-        setIsOpenVisibilityBox(false);
+        if(visibility === 'protected' && data.password == ''){
+            toast.error("The password field is mandatory if the visibility is set to 'protected'.");
+        }
+        else{
+            setData('visibility', visibility);
+            setIsOpenVisibilityBox(false);
+        }
+       
     }
      
     //console.log(data);
@@ -97,22 +104,17 @@ export default function Create({ errors, old, users }) {
     const openStatusBox = () => {
         setIsOpenStatusBox(true);
     };
-
-    const handleSaveClick = () => {
+    const handleStatusChange = (e) => {
+        const { value } = e.target;
+        setStatus(value)
+    }
+    const updateStatus = () => {
         setIsOpenStatusBox(false);
-    };
-
-    const closeStatusBox = () => {
-        setIsOpenStatusBox(false);
+        setData('status', status);
     };
 
     const openVisibilityBox = () => {
         setIsOpenVisibilityBox(true);
-    };
-
-    const closeVisibilityBox = () => {
-        setIsOpenVisibilityBox(false);
-        setVisibility(data.visibility)
     };
   
     return (
@@ -142,7 +144,7 @@ export default function Create({ errors, old, users }) {
                 </div>
             )}
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} autoComplete="off">
                 <div className="row mb-4">
                     <div className="col-8">
                         {/* Form Section to Create Post Type */}
@@ -299,25 +301,19 @@ export default function Create({ errors, old, users }) {
                                                     </div>
 
                                                     {isOpenStatusBox && (
-                                                        <div className="mt-3">
+                                                        <div className="d-flex justify-content-between mt-3">
                                                             <select
                                                                 className="form-select"
-                                                                value={data.status}
-                                                                onChange={handleChange}
+                                                                value={status}
+                                                                onChange={handleStatusChange}
                                                                 name="status"
                                                             >
                                                                 <option value="publish">Publish</option>
                                                                 <option value="draft">Draft</option>
-                                                                <option value="trash">Trash</option>
                                                             </select>
-                                                            <div className="d-flex justify-content-left mt-2">
-                                                                <button className="btn btn-outline-primary" onClick={handleSaveClick}>
-                                                                    Ok
-                                                                </button>
-                                                                <button className="btn btn-link" onClick={closeStatusBox}>
-                                                                    Cancel
-                                                                </button>
-                                                            </div>
+                                                            <button className="btn btn-outline-primary ms-2" onClick={updateStatus}>
+                                                                Ok
+                                                            </button>
                                                         </div>
                                                     )}
                                                 </div>
@@ -331,25 +327,37 @@ export default function Create({ errors, old, users }) {
                                                         )}
                                                     </div>
                                                     {isOpenVisibilityBox && (
-                                                        <div className="mt-3">
-                                                            <select
-                                                                className="form-select"
-                                                                value={visibility}
-                                                                onChange={handleVisibilityChange}
-                                                                name="visibility"
-                                                            >
-                                                                <option value="public">Public</option>
-                                                                <option value="private">Private</option>
-                                                            </select>
-                                                            <div className="d-flex justify-content-left mt-2">
-                                                                <button type="button" className="btn btn-outline-primary" onClick={updateVisibility}> 
+                                                        <>
+                                                            <div className="d-flex justify-content-between mt-3">
+                                                                <select
+                                                                    className="form-select"
+                                                                    value={visibility}
+                                                                    onChange={handleVisibilityChange}
+                                                                    name="visibility"
+                                                                >
+                                                                    <option value="public">Public</option>
+                                                                    <option value="private">Private</option>
+                                                                    <option value="protected">Protected</option>
+                                                                </select>
+                                                                <button type="button" className="btn btn-outline-primary ms-2" onClick={updateVisibility}> 
                                                                     Ok
                                                                 </button>
-                                                                <button className="btn btn-link" onClick={closeVisibilityBox}>
-                                                                    Cancel
-                                                                </button>
                                                             </div>
-                                                        </div>
+                                                            {visibility == 'protected' && 
+                                                            <div className="mt-3 mb-3">
+                                                                <label htmlFor="password" className="form-label">Enter Password</label>
+                                                                <input
+
+                                                                type="password"
+                                                                id="password"
+                                                                name="password"
+                                                                className="form-control"
+                                                                value={data.password}
+                                                                onChange={handleChange}
+                                                                />
+                                                            </div>
+                                                            }
+                                                        </>
                                                     )}
                                                 </div>
                                                 <div className="p-3 mt-5 pt-3 border-top bg-light">

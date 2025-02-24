@@ -2,18 +2,21 @@ import React from 'react';
 import { Link } from "@inertiajs/react";
 
 const Pagination = ({ currentPage, lastPage, filters }) => {
-  
+  console.log(filters);
   // Function to generate the query string with filters
   const generateLink = (pageNumber) => {
     const url = new URL(window.location.href); // Get the current URL
     url.searchParams.set('page', pageNumber); // Set the page number in the query string
 
     // Append any other filters to the query string
-    Object.keys(filters).forEach((key) => {
-      if (filters[key]) {
-        url.searchParams.set(key, filters[key]);
-      }
-    });
+    if(filters){
+      Object.keys(filters).forEach((key) => {
+        if (filters[key]) {
+          url.searchParams.set(key, filters[key]);
+        }
+      });
+    }
+   
 
     return url.toString(); // Return the updated URL
   };

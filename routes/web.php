@@ -68,7 +68,7 @@ Route::prefix('admin')->middleware(['admin', AdminMiddleware::class])->group(fun
         Route::get('/create', [PostTypeController::class, 'create'])->name('posttype.create');
         Route::post('/create', [PostTypeController::class, 'store'])->name('posttype.store');
         Route::get('/{id}/edit', [PostTypeController::class, 'edit'])->name('posttype.edit');
-        Route::put('{id}/edit', [PostTypeController::class, 'update'])->name('posttype.update');
+        Route::post('{id}/edit', [PostTypeController::class, 'update'])->name('posttype.update');
         Route::delete('{id}/delete', [PostTypeController::class, 'destroy'])->name('posttype.destroy');
     });
     

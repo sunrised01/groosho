@@ -13,43 +13,40 @@ import { usePage } from '@inertiajs/react';
 
 export default function AuthLayout({ children }) {
 
-    const { session_expiry_time } = usePage().props; // Get the session expiry time from the props
-    const [timeLeft, setTimeLeft] = useState(session_expiry_time); // Track the time left
-    const [showExpiredPopup, setShowExpiredPopup] = useState(false); // State for showing expired popup
-    
+    const { session_expiry_time } = usePage().props;
+    const [showExpiredPopup, setShowExpiredPopup] = useState(false);
+    const [expireTime, setExpireTime] = useState(session_expiry_time * 60);
+    const [isActive, setIsActive] = useState(true);
+
     useEffect(() => {
         // Start NProgress on page load (inertia visit)
         Inertia.on("start", () => NProgress.start());
-
+    
         // Stop NProgress on page load completion (inertia finish)
         Inertia.on("finish", () => NProgress.done());
-
+    
         // Optionally, add events for page errors or failures
         Inertia.on("error", () => NProgress.done());
 
-        // If session_expiry_time exists, track the countdown
-        if (session_expiry_time) {
-            const expiryTime = session_expiry_time * 1000; 
-            const countdownInterval = setInterval(() => {
-                const remainingTime = expiryTime - Date.now();
-                setTimeLeft(remainingTime);
-
-                // Show popup when session expires
-                if (remainingTime <= 0 && !showExpiredPopup) {
-                    clearInterval(countdownInterval); 
-                    setShowExpiredPopup(true); 
-                }
-            }, 1000); 
-
-            return () => clearInterval(countdownInterval); 
+        if (expireTime === 0) {
+            setShowExpiredPopup(true); 
+            return;
         }
-    }, [session_expiry_time, showExpiredPopup]);
+        // Update the expire time every second
+        const timer = setInterval(() => {
+            setExpireTime(prevTime => prevTime - 1);
+            
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [expireTime]);
 
     // Redirect user to login page when the modal is closed
     const handleRedirectToLogin = () => {
         Inertia.visit(route('admin.login'));
     };
 
+    
     return (
         <>
             <ToastContainer

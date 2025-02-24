@@ -12,9 +12,7 @@ class PostType extends Model
      *  Specify the fillable attributes to allow mass assignment.
     **/
 
-    protected $fillable = [
-        'title', 'cpt_name', 'author', 'singular_name', 'description', 'show_in_menu'
-    ];
+    protected $fillable = ['title', 'cpt_name', 'author', 'singular_name', 'supports', 'status', 'visibility', 'password', 'description'];
 
 }
 

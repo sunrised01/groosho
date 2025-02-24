@@ -17,8 +17,11 @@ return new class extends Migration
             $table->string('cpt_name', 20)->unique();
             $table->integer('author');
             $table->string('singular_name'); 
+            $table->text('supports'); 
+            $table->enum('status', ['publish', 'draft', 'trash'])->default('draft'); ; 
+            $table->enum('visibility', ['public', 'private', 'protected'])->default('public'); 
             $table->text('description')->nullable();
-            $table->enum('show_in_menu', ['Yes', 'No'])->default('Yes');
+            $table->string('password')->nullable();
             $table->timestamps();
         });
     }

@@ -350,7 +350,7 @@ export default function Index() {
                                                 />
                                             </td>
                                             <td >
-                                            <Link href={`/posttype/${postType.id}/edit`} className="text-decoration-none fw-bold">
+                                            <Link href={route('posttype.edit', postType.id)} className="text-decoration-none fw-bold">
                                                 {postType.title}
                                             </Link>
 

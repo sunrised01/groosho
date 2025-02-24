@@ -95,7 +95,7 @@ class PostTypeController extends Controller
     public function create()
     {
         $users = User::select('id', 'name')->get();
-
+     
         return Inertia::render('Admin/PostTypes/Create', [
             'users' => $users
         ]);
@@ -109,28 +109,38 @@ class PostTypeController extends Controller
      */
     public function store(Request $request)
     {
+        $users = User::select('id', 'name')->get();
+
         try {
             $validated = $request->validate([
                 'title' => 'required|string|max:255|unique:post_types,title',
                 'cpt_name' => 'required|string|regex:/^[a-z0-9-_]{1,20}$/|unique:post_types,cpt_name',
                 'singular_name' => 'required|string|max:255|unique:post_types,singular_name',
                 'description' => 'nullable|string',
+                'status' => 'required|in:publish,draft,trash',
+                'visibility' => 'required|in:public,private,protected',
+                'supports' => 'nullable|array',
+                'author_id' => 'required|exists:users,id',
             ]);
 
 
             $postType = PostType::create([
                 'title' => $request->title,
                 'cpt_name' => $request->cpt_name,
-                'author' => auth()->user()->id,
+                'author' => $request->author_id,
                 'singular_name' => $request->singular_name,
+                'supports' => implode(',',$request->supports),
+                'status' => $request->status,
+                'visibility' => $request->visibility,
+                'password' => ($request->visibility == 'protected' ? $request->password : ''),
                 'description' => $request->description,
-                'show_in_menu' => $request->show_in_menu,
             ]);
             
             return redirect()->route('posttype.edit', $postType->id)->with('success', 'Post type created successfully!');
             
         } catch (\Illuminate\Validation\ValidationException $e) {
             return Inertia::render('Admin/PostTypes/Create', [
+                'users' => $users,
                 'errors' => $e->errors(),
                 'formData' => $request->all(),
             ]);
@@ -140,6 +150,7 @@ class PostTypeController extends Controller
             Log::error('Error creating post type: ' . $e->getMessage());
 
             return Inertia::render('Admin/PostTypes/Create', [
+                'users' => $users,
                 'errors' => ['general' => $e->getMessage()],
                 'formData' => $request->all(),
             ]);
@@ -154,9 +165,14 @@ class PostTypeController extends Controller
      */
     public function edit($id)
     {
+        $users = User::select('id', 'name')->get();
         $postType = PostType::findOrFail($id);
+        
+        $postType->supports = explode(',', $postType->supports);
+       
         return Inertia::render('Admin/PostTypes/Edit', [
-            'postType' => $postType 
+            'postType' => $postType,
+            'users' => $users, 
         ]);
     }
 
@@ -170,6 +186,7 @@ class PostTypeController extends Controller
     public function update(Request $request, $id)
     {
         $postType = PostType::findOrFail($id);
+        $users = User::select('id', 'name')->get();
 
         try {
 
@@ -177,13 +194,26 @@ class PostTypeController extends Controller
             $validated = $request->validate([
                 'title' => 'required|alpha_dash|max:20|unique:post_types,title,' . $id,
                 'cpt_name' => 'required|alpha_dash|max:20|unique:post_types,cpt_name,' . $id,
-                'singular_name' => 'required|string',
+                'singular_name' => 'required|string|max:255|unique:post_types,singular_name,' . $id,
                 'description' => 'nullable|string',
-                
+                'status' => 'required|in:publish,draft,trash',
+                'visibility' => 'required|in:public,private,protected',
+                'supports' => 'nullable|array',
+                'author_id' => 'required|exists:users,id',
             ]);
             
             // Update the PostType with validated data
-            $postType->update($validated);
+            $postType->update([
+                'title' => $request->title,
+                'cpt_name' => $request->cpt_name,
+                'author' => $request->author_id,
+                'singular_name' => $request->singular_name,
+                'supports' => implode(',',$request->supports),
+                'status' => $request->status,
+                'visibility' => $request->visibility,
+                'password' => ($request->visibility == 'protected' ? $request->password : ''),
+                'description' => $request->description,
+            ]);
 
             // Redirect with success message using Inertia
             return redirect()->route('posttype.edit', $id)->with('success', 'Custom post type updated successfully.');
@@ -193,6 +223,7 @@ class PostTypeController extends Controller
                 'errors' => $e->errors(),
                 'formData' => $request->all(),
                 'postType' => $postType,
+                'users' => $users,
             ]);
             
         } catch (\Exception $e) {
@@ -203,6 +234,7 @@ class PostTypeController extends Controller
                 'errors' => ['general' => $e->getMessage()],
                 'formData' => $request->all(),
                 'postType' => $postType,
+                'users' => $users,
             ]);
 
         }
