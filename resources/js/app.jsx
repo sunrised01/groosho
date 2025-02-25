@@ -1,25 +1,38 @@
-import '../css/app.css';
-import './bootstrap';
+    import '../css/app.css';
+    import './bootstrap';
 
-import { createInertiaApp } from '@inertiajs/react';
-import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
-import { createRoot } from 'react-dom/client';
+    import { createInertiaApp } from '@inertiajs/react';
+    import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
+    import { createRoot } from 'react-dom/client';
+    import { Inertia } from '@inertiajs/inertia'; 
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+    const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
-createInertiaApp({
-    title: (title) => `${title} - ${appName}`,
-    resolve: (name) =>
-        resolvePageComponent(
-            `./Pages/${name}.jsx`,
-            import.meta.glob('./Pages/**/*.jsx'),
-        ),
-    setup({ el, App, props }) {
-        const root = createRoot(el);
+    // Global before hook to intercept delete actions
+    Inertia.on('before', (event) => {
+        const methodsToConfirm = ['delete']; 
+        if (methodsToConfirm.includes(event.detail.visit.method)) {
+            if (event.detail.visit.method === 'delete' && window.confirm('Are you sure you want to move this item to trash?')) {
+                return true;
+            }
+            event.preventDefault();
+            return false;
+        }
+    });
 
-        root.render(<App {...props} />);
-    },
-    progress: {
-        color: '#4B5563',
-    },
-});
+    createInertiaApp({
+        title: (title) => `${title} - ${appName}`,
+        resolve: (name) =>
+            resolvePageComponent(
+                `./Pages/${name}.jsx`,
+                import.meta.glob('./Pages/**/*.jsx'),
+            ),
+        setup({ el, App, props }) {
+            const root = createRoot(el);
+
+            root.render(<App {...props} />);
+        },
+        progress: {
+            color: '#4B5563',
+        },
+    });

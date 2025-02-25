@@ -11,13 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('post_types', function (Blueprint $table) {
+        Schema::create('taxonomies', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->string('cpt_name', 20);
+            $table->string('taxonomy_name', 32);
             $table->integer('author');
             $table->string('singular_name'); 
-            $table->text('supports'); 
             $table->enum('status', ['publish', 'draft', 'trash'])->default('draft'); ; 
             $table->enum('visibility', ['public', 'private', 'protected'])->default('public'); 
             $table->text('description')->nullable();
@@ -31,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('post_types');
+        Schema::dropIfExists('taxonomies');
     }
 };

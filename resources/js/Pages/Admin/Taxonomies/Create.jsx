@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
 import AppLayout from '@/Pages/Admin/Layouts/AppLayout';
-import { Head, useForm, Link, usePage } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { FaChevronDown, FaChevronUp, FaEye, FaMapPin, FaCalendar } from 'react-icons/fa';
 import { toast } from 'react-toastify';
-import { Inertia } from '@inertiajs/inertia';
 
-export default function Edit({ postType, errors, users }) {
-    const [localErrors, setLocalErrors] = useState({});
+
+export default function Create({ errors, old, users }) {
+   
     const current_user = usePage().props.auth.user;
+    const [localErrors, setLocalErrors] = useState({});
     const [activeSections, setActiveSections] = useState({
         'sb-publish': true,
     });
@@ -15,32 +16,24 @@ export default function Edit({ postType, errors, users }) {
     const [isOpenVisibilityBox, setIsOpenVisibilityBox] = useState(false);
     const [support, setSupports] = useState(['title', 'editor']);
     
-    const { flash } = usePage().props;
-   
-    const successMessage = flash.success;
-    const erroeMessage = flash.error;
-
-    // Initialize the form using Inertia's useForm hook with the existing postType data
-
+    // UseForm hook initialization
     const { data, setData, post, processing, reset } = useForm({
-        title: postType?.title || "",
-        cpt_name: postType?.cpt_name || "",
-        singular_name: postType?.singular_name || "",
-        description: postType?.description || "",
-        status: postType?.status || "publish", 
-        visibility: postType?.visibility || 'public',
-        supports: postType?.supports || support,
-        author_id: postType?.author || current_user.id, 
-        password: postType?.password || "", 
+        title: old?.title || "",
+        cpt_name: old?.cpt_name || "",
+        singular_name: old?.singular_name || "",
+        description: old?.description || "",
+        status: old?.status || "publish", 
+        visibility: old?.visibility || 'public',
+        supports: old?.supports || support,
+        author_id: old?.author_id || current_user.id, 
     });
 
     const [visibility, setVisibility] = useState(data.visibility);
     const [status, setStatus] = useState(data.status);
 
-
     const handleVisibilityChange = (e) => {
         const { value } = e.target;
-        setVisibility(value);
+        setVisibility(value)
     }
 
     const updateVisibility = () => {
@@ -53,6 +46,8 @@ export default function Edit({ postType, errors, users }) {
         }
        
     }
+     
+    //console.log(data);
 
     // Toggle a specific section's state (open/close)
     const toggleItem = (index) => {
@@ -86,67 +81,53 @@ export default function Edit({ postType, errors, users }) {
 
     // Handle form submission
     const handleSubmit = (e) => {
-        e.preventDefault(); // Prevent default form submission behavior
-        post(route('posttype.update', postType.id), { 
+        e.preventDefault();
+        post(route('posttype.store'), {
             onFinish: () => {
-                // Optional callback after submission finishes, such as resetting form data
-            }
+                // Optional reset logic (currently commented out)
+                // reset();
+            },
         });
     };
 
-    // Effect hook to handle errors and success messages
+    // Effect to update errors when they change
     useEffect(() => {
-        setLocalErrors(errors); 
-        if (successMessage) {
-            toast.success(successMessage); 
-        }
-        
-        if (erroeMessage) {
-            toast.error(erroeMessage); 
-        }
+        setLocalErrors(errors);
+    }, [errors]);
 
-    }, [errors, successMessage, erroeMessage]); 
-
-
-    // Function to remove a specific error message
     const removeError = (key) => {
-        const newErrors = { ...localErrors }; 
+        const newErrors = { ...localErrors };
         delete newErrors[key];
         setLocalErrors(newErrors);
     };
 
+    const openStatusBox = () => {
+        setIsOpenStatusBox(true);
+    };
     const handleStatusChange = (e) => {
         const { value } = e.target;
         setStatus(value)
     }
-
-
-    const openStatusBox = () => {
-        setIsOpenStatusBox(true);
-    };
-
     const updateStatus = () => {
         setIsOpenStatusBox(false);
         setData('status', status);
     };
 
-
     const openVisibilityBox = () => {
         setIsOpenVisibilityBox(true);
     };
-
+  
     return (
         <AppLayout>
-            <Head title="Edit Post Type" />
-            {/* Page header */}
+            <Head title="Post Types" />
+            {/* Page Header Section */}
             <div className="row mb-4">
                 <div className="col-12 d-flex align-items-center">
-                    <h2 className="page-title mr-2">Edit Custom Post Type</h2>
-                    <Link href={route('posttype.create')} className="btn btn-outline-primary">Add New Custom Post Type</Link>
+                    <h2 className="page-title mr-2">Create New Custom Post Type</h2>
                 </div>
             </div>
 
-            {/* Display error messages if available */}
+            {/* Display Error Messages */}
             {Object.keys(localErrors).length > 0 && (
                 <div>
                     {Object.keys(localErrors).map((errorKey, index) => (
@@ -155,7 +136,7 @@ export default function Edit({ postType, errors, users }) {
                                 type="button"
                                 className="btn-close"
                                 aria-label="Close"
-                                onClick={() => removeError(errorKey)} 
+                                onClick={() => removeError(errorKey)}
                             ></button>
                             <p className="m-0">{localErrors[errorKey]}</p>
                         </div>
@@ -381,26 +362,13 @@ export default function Edit({ postType, errors, users }) {
                                                 </div>
                                                 <div className="p-3 mt-5 pt-3 border-top bg-light">
                                                     <div className="d-flex justify-content-between align-items-center">
-                                                        <div className="trash-btn">
-                                                            
-                                                            <Link
-                                                            as="button"
-                                                            method="put"
-                                                            href={route('posttype.update.status', [postType.id, 'trash'])}
-                                                            className="text-danger"
-                                                            style={{ fontSize: '13px' }}
-                                                            
-                                                        >
-                                                            Move to Trash
-                                                        </Link>
-
-                                                        </div>
+                                                        <div></div>
                                                         {/* Submit Button */}
                                                         <button type="submit" className="btn btn-primary" disabled={processing}>
                                                             {processing ? (
                                                                 <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                                                             ) : (
-                                                                'Update'
+                                                                "Publish"
                                                             )}
                                                         </button>
                                                     </div>

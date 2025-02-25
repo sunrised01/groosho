@@ -2,7 +2,6 @@ import React from 'react';
 import { Link } from "@inertiajs/react";
 
 const Pagination = ({ currentPage, lastPage, filters }) => {
-  console.log(filters);
   // Function to generate the query string with filters
   const generateLink = (pageNumber) => {
     const url = new URL(window.location.href); // Get the current URL

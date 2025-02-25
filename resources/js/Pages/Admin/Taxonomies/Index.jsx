@@ -9,7 +9,7 @@ import { toast } from 'react-toastify';
 
 
 export default function Index() {
-    const { postTypes, filters, pagination, months, totalCount, publishCount, trashCount, draftCount, flash } = usePage().props;
+    const { taxonomies, filters, pagination, months, totalCount, publishCount, trashCount, draftCount, flash } = usePage().props;
     
     const successMessage = flash.success;
     const erroeMessage = flash.error;
@@ -30,21 +30,21 @@ export default function Index() {
     };
 
     // Handle row selection
-    const handleRowSelection = (postTypeId) => {
+    const handleRowSelection = (taxonomiesId) => {
         setSelectedRows((prevSelectedRows) => {
-            if (prevSelectedRows.includes(postTypeId)) {
-                return prevSelectedRows.filter(id => id !== postTypeId);
+            if (prevSelectedRows.includes(taxonomiesId)) {
+                return prevSelectedRows.filter(id => id !== taxonomiesId);
             }
-            return [...prevSelectedRows, postTypeId];
+            return [...prevSelectedRows, taxonomiesId];
         });
     };
 
     // Handle Select All functionality
     const handleSelectAll = () => {
-        if (selectedRows.length === postTypes.data.length) {
+        if (selectedRows.length === taxonomies.data.length) {
             setSelectedRows([]);
         } else {
-            setSelectedRows(postTypes.data.map(postType => postType.id));
+            setSelectedRows(taxonomies.data.map(taxonomy => taxonomy.id));
         }
     };
 
@@ -52,7 +52,7 @@ export default function Index() {
     const handlePerPageChange = (e) => {
         const perPage = e.target.value;
 
-        Inertia.get(route('posttype.index'), {
+        Inertia.get(route('taxonomies.index'), {
             ...filters, 
             per_page: perPage, 
         }, {
@@ -78,11 +78,11 @@ export default function Index() {
 
     return (
         <AppLayout>
-            <Head title="Post Types" />
+            <Head title="Taxonomies" />
             <div className="row mb-4">
                 <div className="col-12 d-flex align-items-center">
-                    <h2 className="page-title mr-2">Post Types</h2>
-                    <Link href={route('posttype.create')} className="btn btn-outline-primary">Add New Custom Post Type</Link>
+                    <h2 className="page-title mr-2">Taxonomies</h2>
+                    <Link href={route('taxonomy.create')} className="btn btn-outline-primary">Add New Taxonomy</Link>
                 </div>
             </div>
 
@@ -90,13 +90,13 @@ export default function Index() {
             <div className="row mb-3">
                 <div className="col-12 d-flex justify-content-between">
                     <div className="d-flex align-items-center">
-                        <Link href={route('posttype.index')} className="btn btn-link"  as="button">
+                        <Link href={route('taxonomies.index')} className="btn btn-link"  as="button">
                             All({totalCount})
                         </Link>
                         {publishCount > 0 &&
                              <Link 
                                 as="button"
-                                href={route('posttype.index', {
+                                href={route('taxonomies.index', {
                                     ...filters,
                                     status: 'publish'
                                 })}
@@ -109,7 +109,7 @@ export default function Index() {
                         {draftCount > 0 &&
                              <Link 
                                 as="button"
-                                href={route('posttype.index', {
+                                href={route('taxonomies.index', {
                                     ...filters,
                                     status: 'draft'
                                 })}
@@ -122,7 +122,7 @@ export default function Index() {
                         {trashCount > 0 &&
                              <Link 
                                 as="button"
-                                href={route('posttype.index', {
+                                href={route('taxonomies.index', {
                                     ...filters,
                                     status: 'trash'
                                 })}
@@ -145,7 +145,7 @@ export default function Index() {
                         />
                         <Link
                             as="button"
-                            href={route('posttype.index', {
+                            href={route('taxonomies.index', {
                                 ...filters,  
                                 s: searchFilter 
                             })}
@@ -181,7 +181,7 @@ export default function Index() {
                                     
                                     <Link 
                                         method="post"
-                                        href={route('posttype.bulk.action', { status: bulkAction, ids: selectedRows.join(',') })} 
+                                        href={route('taxonomy.bulk.action', { status: bulkAction, ids: selectedRows.join(',') })} 
                                         className="btn btn-primary" 
                                         onClick={() => setLoading(true)}
                                     >
@@ -212,7 +212,7 @@ export default function Index() {
 
                                     <Link
                                         as="button"
-                                        href={route('posttype.index', {
+                                        href={route('taxonomies.index', {
                                             ...filters,  
                                             date_filter: dateFilter 
                                         })}
@@ -242,7 +242,7 @@ export default function Index() {
                                         <Dropdown.Content>
                                             <Dropdown.Link
                                              as="button"
-                                            href={route('posttype.index', {
+                                            href={route('taxonomies.index', {
                                                 ...filters,
                                                 per_page: 10 
                                             })}
@@ -251,7 +251,7 @@ export default function Index() {
                                             </Dropdown.Link>
                                             <Dropdown.Link
                                             as="button"
-                                            href={route('posttype.index', {
+                                            href={route('taxonomies.index', {
                                                 ...filters,
                                                 per_page: 20 
                                             })}
@@ -260,7 +260,7 @@ export default function Index() {
                                             </Dropdown.Link>
                                             <Dropdown.Link
                                              as="button"
-                                            href={route('posttype.index', {
+                                            href={route('taxonomies.index', {
                                                 ...filters,
                                                 per_page: 30 
                                             })}
@@ -279,7 +279,7 @@ export default function Index() {
                                             <input
                                                 type="checkbox"
                                                 onChange={handleSelectAll}
-                                                checked={selectedRows.length === postTypes.data.length}
+                                                checked={selectedRows.length === taxonomies.data.length}
                                             />
                                         </th>
                                         <th style={{ width: '250px' }}>
@@ -289,7 +289,7 @@ export default function Index() {
 
                                                 <Link
                                                      as="button"
-                                                    href={route('posttype.index', {
+                                                    href={route('taxonomies.index', {
                                                         ...filters,
                                                         order_by: 'asc', 
                                                         order_column: 'title'
@@ -301,7 +301,7 @@ export default function Index() {
 
                                                 <Link
                                                     as="button"
-                                                    href={route('posttype.index', {
+                                                    href={route('taxonomies.index', {
                                                         ...filters,
                                                         order_by: 'desc', 
                                                         order_column: 'title'  
@@ -316,10 +316,10 @@ export default function Index() {
 
                                         <th>
                                             <div className="d-flex align-items-center">
-                                                <span className="me-3">CPT Name(Slug)</span>
+                                                <span className="me-3">Taxonomy(Slug)</span>
                                                 <Link
                                                     as="button"
-                                                    href={route('posttype.index', {
+                                                    href={route('taxonomies.index', {
                                                         ...filters,
                                                         order_by: 'asc', 
                                                         order_column: 'cpt_name'
@@ -331,7 +331,7 @@ export default function Index() {
 
                                                 <Link
                                                     as="button"
-                                                    href={route('posttype.index', {
+                                                    href={route('taxonomies.index', {
                                                         ...filters,
                                                         order_by: 'desc', 
                                                         order_column: 'cpt_name'  
@@ -347,7 +347,7 @@ export default function Index() {
                                                 <span className="me-3">Singular Name</span>
                                                 <Link
                                                     as="button"
-                                                    href={route('posttype.index', {
+                                                    href={route('taxonomies.index', {
                                                         ...filters,
                                                         order_by: 'asc', 
                                                         order_column: 'singular_name'
@@ -359,7 +359,7 @@ export default function Index() {
 
                                                 <Link
                                                      as="button"
-                                                    href={route('posttype.index', {
+                                                    href={route('taxonomies.index', {
                                                         ...filters,
                                                         order_by: 'desc', 
                                                         order_column: 'singular_name'  
@@ -376,25 +376,25 @@ export default function Index() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {postTypes.data.map((postType) => (
-                                        <tr key={postType.id} className="position-relative">
+                                    {taxonomies.data.map((taxonomy) => (
+                                        <tr key={taxonomy.id} className="position-relative">
                                             <td>
                                                 <input
                                                     type="checkbox"
-                                                    checked={selectedRows.includes(postType.id)}
-                                                    onChange={() => handleRowSelection(postType.id)}
+                                                    checked={selectedRows.includes(taxonomy.id)}
+                                                    onChange={() => handleRowSelection(taxonomy.id)}
                                                 />
                                             </td>
                                             <td >
-                                                {postType.status === 'trash' ?
+                                                {taxonomy.status === 'trash' ?
                                                     <div className="text-black fw-bold">
-                                                    {postType.title} {postType.status === 'draft' &&
+                                                    {taxonomy.title} {taxonomy.status === 'draft' &&
                                                         <span className="fw-bold text-black">- Draft</span>
                                                         }
                                                     </div>
                                                 :
-                                                <Link href={route('posttype.edit', postType.id)} className="text-decoration-none fw-bold">
-                                                    {postType.title} {postType.status === 'draft' &&
+                                                <Link href={route('taxonomy.edit', taxonomy.id)} className="text-decoration-none fw-bold">
+                                                    {taxonomy.title} {taxonomy.status === 'draft' &&
                                                     <span className="fw-bold text-black">- Draft</span>
                                                     }
                                                 </Link>
@@ -403,13 +403,13 @@ export default function Index() {
                                                 
 
                                                 <div className="action-icons ">
-                                                    {postType.status === 'trash' ?
+                                                    {taxonomy.status === 'trash' ?
                                                         <>
                                                             <span className="edit">
                                                                 <Link 
                                                                     as="button"
                                                                     method="put"
-                                                                    href={route('posttype.update.status', [postType.id, 'draft'])}
+                                                                    href={route('taxonomy.update.status', [taxonomy.id, 'draft'])}
                                                                     className="text-primary mx-2"
                                                                     style={{ fontSize: '13px' }}
                                                                 >
@@ -421,7 +421,7 @@ export default function Index() {
                                                                 <Link
                                                                     as="button"
                                                                     method="put"
-                                                                    href={route('posttype.update.status', [postType.id, 'delete'])}
+                                                                    href={route('taxonomy.update.status', [taxonomy.id, 'delete'])}
                                                                     className="text-danger"
                                                                     style={{ fontSize: '13px' }}
                                                                     
@@ -434,7 +434,7 @@ export default function Index() {
                                                         :
                                                         <>
                                                             <span className="edit">
-                                                                <Link href={route('posttype.edit', postType.id)} className="text-primary mx-2"  style={{ fontSize: '13px' }}>
+                                                                <Link href={route('taxonomy.edit', taxonomy.id)} className="text-primary mx-2"  style={{ fontSize: '13px' }}>
                                                                     Edit
                                                                 </Link>
                                                                 | 
@@ -443,7 +443,7 @@ export default function Index() {
                                                                 <Link
                                                                     as="button"
                                                                       method="put"
-                                                                    href={route('posttype.update.status', [postType.id, 'trash'])}
+                                                                    href={route('taxonomy.update.status', [taxonomy.id, 'trash'])}
                                                                     className="text-danger"
                                                                     style={{ fontSize: '13px' }}
                                                                     
@@ -458,8 +458,8 @@ export default function Index() {
                                                 
                                                 </div>
                                             </td>
-                                            <td>{postType.cpt_name}</td>
-                                            <td>{postType.singular_name}</td>
+                                            <td>{taxonomy.taxonomy_name}</td>
+                                            <td>{taxonomy.singular_name}</td>
                                             
                                         </tr>
                                     ))}

@@ -32,7 +32,7 @@ const Sidebar = () => {
             subMenu: [
                 { name: 'Overview', link: route('cpt.index') },
                 { name: 'Post Types', link: route('posttype.index') },
-                { name: 'Taxonomies', link: route('taxonomy.index') },
+                { name: 'Taxonomies', link: route('taxonomies.index') },
             ]
         },
         { 
