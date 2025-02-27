@@ -6,14 +6,15 @@ import { BsFileText } from 'react-icons/bs';
 
 const Sidebar = () => {
     const urlData = usePage();
-
+   
     // Function to extract the path after '/admin/'
     const getPathAfterAdmin = (url) => {
-        const match = url.match(/\/admin\/([^/]+)/);
-        return match ? match[1] : '';
+        const match = url.match(/\/admin\/(.*)/);  
+        return match ? match[1] : ''; 
     };
 
     // Array of menu items
+    const { postTypesmenu } = usePage().props;
     const menuItems = [
         { 
             name: 'Dashboard', 
@@ -35,6 +36,31 @@ const Sidebar = () => {
                 { name: 'Taxonomies', link: route('taxonomies.index') },
             ]
         },
+        // Check if postTypes menu has items before adding
+        ...(postTypesmenu && postTypesmenu.length > 0 ? postTypesmenu.map(postTypemenu => {
+            const hasTaxonomies = postTypemenu.taxonomies && postTypemenu.taxonomies.length > 0;
+
+            return {
+                name: postTypemenu.title,
+                icon: <BsFileText />,
+                link: route('posts.index', postTypemenu.cpt_name),
+                subMenu: [
+                    { 
+                        name: `All ${postTypemenu.title}`,
+                        link: route('posts.index', postTypemenu.cpt_name) 
+                    },
+                    { 
+                        name: 'Add New', 
+                        link: route('posts.create', postTypemenu.cpt_name) 
+                    },
+                    ...(hasTaxonomies ? postTypemenu.taxonomies.map(taxonomy => ({
+                        name: taxonomy.title,
+                        link: route('trem.index', taxonomy.taxonomy_name)  
+                    })) : [])
+                ]
+            };
+        }) : []),
+
         { 
             name: 'Settings', 
             icon: <BsGear />, 
@@ -94,7 +120,7 @@ const Sidebar = () => {
 
                             {/* Submenu handling */}
                             {item.subMenu && (
-                                <ul className={`menu-sub ${isParentActive ? 'open' : ''} group-hover:block hidden`}>
+                                <ul className={`menu-sub ${isParentActive ? 'open' : ''} ${!isParentActive ? 'hover-items' : ''} `}>
                                     {item.subMenu.map((subItem, subIndex) => {
                                         const subItemUrl = `${subItem.link}`;
                                         const currentPath = getPathAfterAdmin(CurrentUrl);

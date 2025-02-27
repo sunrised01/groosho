@@ -3,6 +3,7 @@
 namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\PostType;
 
 class Taxonomies extends Model
 {
@@ -13,5 +14,11 @@ class Taxonomies extends Model
     **/
 
     protected $fillable = ['title', 'taxonomy_name', 'author', 'singular_name', 'status', 'visibility', 'password', 'description'];
+
+     // Define the relationship
+     public function postTypes()
+     {
+         return $this->belongsToMany(PostType::class, 'post_type_taxonomy', 'taxonomy_id', 'post_type_id');
+     }
 
 }

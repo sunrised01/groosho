@@ -3,9 +3,35 @@ import AppLayout from '@/Pages/Admin/Layouts/AppLayout';
 import { Head, useForm, Link, usePage } from '@inertiajs/react';
 import { FaChevronDown, FaChevronUp, FaEye, FaMapPin, FaCalendar } from 'react-icons/fa';
 import { toast } from 'react-toastify';
-import { Inertia } from '@inertiajs/inertia';
 
-export default function Edit({ postType, errors, users }) {
+export default function Edit({ taxonomy, errors, users, postTypes }) {
+
+      // Check if the taxonomy is in the trash
+      const isInTrash = taxonomy?.status === 'trash';
+
+      // If taxonomy is in trash, return blank page with an error message
+      if (isInTrash) {
+          return (
+              <AppLayout>
+                  <Head title="Edit Taxonomy" />
+                  
+                        <div className="row">
+                            <div className="col-12">
+                                <div className="card mb-4">
+                                    <div className="card-body">
+                                        <div className="container text-center mt-5">
+                                            <h2 className="text-danger">This taxonomy no longer exists.</h2>
+                                            <p className="text-muted">It has been moved to trash and is no longer available for editing.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                 
+              </AppLayout>
+          );
+      }
+
     const [localErrors, setLocalErrors] = useState({});
     const current_user = usePage().props.auth.user;
     const [activeSections, setActiveSections] = useState({
@@ -13,25 +39,23 @@ export default function Edit({ postType, errors, users }) {
     });
     const [isOpenStatusBox, setIsOpenStatusBox] = useState(false);
     const [isOpenVisibilityBox, setIsOpenVisibilityBox] = useState(false);
-    const [support, setSupports] = useState(['title', 'editor']);
     
     const { flash } = usePage().props;
    
     const successMessage = flash.success;
     const erroeMessage = flash.error;
 
-    // Initialize the form using Inertia's useForm hook with the existing postType data
-
+    // Initialize the form using Inertia's useForm hook with the existing taxonomy data
     const { data, setData, post, processing, reset } = useForm({
-        title: postType?.title || "",
-        cpt_name: postType?.cpt_name || "",
-        singular_name: postType?.singular_name || "",
-        description: postType?.description || "",
-        status: postType?.status || "publish", 
-        visibility: postType?.visibility || 'public',
-        supports: postType?.supports || support,
-        author_id: postType?.author || current_user.id, 
-        password: postType?.password || "", 
+        title: taxonomy?.title || "",
+        taxonomy_name: taxonomy?.taxonomy_name || "",
+        singular_name: taxonomy?.singular_name || "",
+        description: taxonomy?.description || "",
+        status: taxonomy?.status || "publish", 
+        visibility: taxonomy?.visibility || 'public',
+        post_type: taxonomy.post_types[0]?.id || "",
+        author_id: taxonomy?.author || current_user.id, 
+        password: taxonomy?.password || "", 
     });
 
     const [visibility, setVisibility] = useState(data.visibility);
@@ -66,18 +90,7 @@ export default function Edit({ postType, errors, users }) {
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
 
-        if (name === "supports") {
-            // Handle multi-checkbox change
-            setData((prevData) => {
-             
-                const newSupports = checked
-                    ? [...prevData.supports, value] 
-                    : prevData.supports.filter(item => item !== value);  
-                    
-                return { ...prevData, supports: newSupports }; 
-            });
-        }
-        else if(name === "cpt_name"){
+        if(name === "taxonomy_name"){
             setData(name, value.toLowerCase());
         } else {
             setData(name, value);
@@ -87,7 +100,7 @@ export default function Edit({ postType, errors, users }) {
     // Handle form submission
     const handleSubmit = (e) => {
         e.preventDefault(); // Prevent default form submission behavior
-        post(route('posttype.update', postType.id), { 
+        post(route('taxonomy.update', taxonomy.id), { 
             onFinish: () => {
                 // Optional callback after submission finishes, such as resetting form data
             }
@@ -137,12 +150,12 @@ export default function Edit({ postType, errors, users }) {
 
     return (
         <AppLayout>
-            <Head title="Edit Post Type" />
+            <Head title="Edit Taxonomy" />
             {/* Page header */}
             <div className="row mb-4">
                 <div className="col-12 d-flex align-items-center">
-                    <h2 className="page-title mr-2">Edit Custom Post Type</h2>
-                    <Link href={route('posttype.create')} className="btn btn-outline-primary">Add New Custom Post Type</Link>
+                    <h2 className="page-title mr-2">Edit Taxonomy</h2>
+                    <Link href={route('taxonomy.create')} className="btn btn-outline-primary">Add New Taxonomy</Link>
                 </div>
             </div>
 
@@ -166,7 +179,7 @@ export default function Edit({ postType, errors, users }) {
             <form onSubmit={handleSubmit} autoComplete="off">
                 <div className="row mb-4">
                     <div className="col-8">
-                        {/* Form Section to Create Post Type */}
+                        {/* Form Section to Create Taxonomy */}
                         <div className="row">
                             <div className="col-12">
                                 <div className="card mb-4">
@@ -185,7 +198,7 @@ export default function Edit({ postType, errors, users }) {
                                                 onChange={handleChange}
                                             />
                                             <small className="form-text text-muted">
-                                                Name of the post type shown in the menu (usually plural).
+                                                Name of the taxonomy shown in the menu (usually plural).
                                             </small>
                                         </div>
                                     </div>
@@ -194,17 +207,17 @@ export default function Edit({ postType, errors, users }) {
                                     <div className="card-body">
                                         <div className="form-fields">
                                             
-                                            {/* CPT Name Input Field */}
+                                            {/* Taxonomy Name Input Field */}
                                             <div className="mb-3">
-                                                <label htmlFor="cpt_name" className="form-label">
-                                                    CPT Name (Slug)<span className="text-danger">*</span>
+                                                <label htmlFor="taxonomy_name" className="form-label">
+                                                    Taxonomy Name (Slug)<span className="text-danger">*</span>
                                                 </label>
                                                 <input
                                                     type="text"
-                                                    id="cpt_name"
-                                                    name="cpt_name"
+                                                    id="taxonomy_name"
+                                                    name="taxonomy_name"
                                                     className="form-control"
-                                                    value={data.cpt_name}
+                                                    value={data.taxonomy_name}
                                                     onChange={handleChange}
                                                 />
                                                 <small className="form-text text-muted">
@@ -224,7 +237,7 @@ export default function Edit({ postType, errors, users }) {
                                                     onChange={handleChange}
                                                 />
                                                 <small className="form-text text-muted">
-                                                    Name for one object of this post type.
+                                                    Name for one object of this taxonomy.
                                                 </small>
                                             </div>
 
@@ -239,28 +252,27 @@ export default function Edit({ postType, errors, users }) {
                                                     onChange={handleChange}
                                                 />
                                                 <small className="form-text text-muted">
-                                                    A short descriptive summary of what the post type is.
+                                                    A short descriptive summary of what the taxonomy is.
                                                 </small>
                                             </div>
 
-                                            {/* Support Fields */}
+                                            {/* Post Type */}
                                             <div className="mb-3">
-                                                <label className="form-label">Supports</label>
-                                                <p>Enable core features for this post type</p>
-                                                {['title', 'editor', 'excerpt', 'featured_image', 'author'].map((support) => (
-                                                    <div className="form-check" key={support}>
-                                                        <input
-                                                            type="checkbox"
-                                                            className="form-check-input"
-                                                            id={support}
-                                                            name="supports"
-                                                            value={support}
-                                                            checked={data.supports.includes(support)}
-                                                            onChange={handleChange}
-                                                        />
-                                                        <label className="form-check-label" htmlFor={support}>{support.replace('_', ' ').toUpperCase()}</label>
-                                                    </div>
-                                                ))}
+                                                <label htmlFor="post_type" className="form-label">Post Type</label>
+                                                <select
+                                                    id="post_type"
+                                                    name="post_type"
+                                                    className="form-control"
+                                                    value={data.post_type}
+                                                    onChange={handleChange}
+                                                >
+                                                    <option value="">Select Post Type</option>
+                                                    {postTypes && postTypes.map(postType => (
+                                                        <option key={postType.id} value={postType.id}>
+                                                            {postType.title}
+                                                        </option>
+                                                    ))}
+                                                </select>
                                             </div>
 
                                             
@@ -386,7 +398,7 @@ export default function Edit({ postType, errors, users }) {
                                                             <Link
                                                             as="button"
                                                             method="put"
-                                                            href={route('posttype.update.status', [postType.id, 'trash'])}
+                                                            href={route('taxonomy.update.status', [taxonomy.id, 'trash'])}
                                                             className="text-danger"
                                                             style={{ fontSize: '13px' }}
                                                             

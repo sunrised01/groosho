@@ -10,7 +10,6 @@ import { toast } from 'react-toastify';
 
 export default function Index() {
     const { taxonomies, filters, pagination, months, totalCount, publishCount, trashCount, draftCount, flash } = usePage().props;
-    
     const successMessage = flash.success;
     const erroeMessage = flash.error;
 
@@ -18,7 +17,7 @@ export default function Index() {
     const [currentPage] = useState(pagination.current_page);
     const [lastPage] = useState(pagination.last_page);
     const [selectedRows, setSelectedRows] = useState([]);
-    const [dateFilter, setDateFilter] = useState(filters.dateFilter || 'all');
+    const [dateFilter, setDateFilter] = useState(filters.date_filter || 'all');
     const [searchFilter, setSearchFilter] = useState(filters.s || '');
     const [perPage] = useState(filters.per_page || 10);
     const [bulkAction, setBulkAction] = useState(''); 
@@ -74,7 +73,7 @@ export default function Index() {
             toast.error(erroeMessage); 
         }
 
-    }, [successMessage, erroeMessage]); 
+    }, [successMessage, erroeMessage, loading]); 
 
     return (
         <AppLayout>
@@ -139,7 +138,7 @@ export default function Index() {
                         <input
                             type="text"
                             className="form-control"
-                            placeholder="Search by Title or CPT Name"
+                            placeholder="Search by Title or Taxonomy Name"
                             defaultValue={searchFilter}
                             onChange={handleSearchChange}
                         />
@@ -183,6 +182,7 @@ export default function Index() {
                                         method="post"
                                         href={route('taxonomy.bulk.action', { status: bulkAction, ids: selectedRows.join(',') })} 
                                         className="btn btn-primary" 
+                                        disabled={bulkAction === '' || loading === true}
                                         onClick={() => setLoading(true)}
                                     >
                                         {loading ? (
@@ -322,11 +322,11 @@ export default function Index() {
                                                     href={route('taxonomies.index', {
                                                         ...filters,
                                                         order_by: 'asc', 
-                                                        order_column: 'cpt_name'
+                                                        order_column: 'taxonomy_name'
                                                     })}
-                                                    className={`btn btn-link p-0 ${filters.order_column === 'cpt_name' && filters.order_by === 'asc' ? 'active' : ''}`}
+                                                    className={`btn btn-link p-0 ${filters.order_column === 'taxonomy_name' && filters.order_by === 'asc' ? 'active' : ''}`}
                                                 >
-                                                    <FaArrowUp color={filters.order_column === 'cpt_name' && filters.order_by === 'asc' ? 'black' : 'gray'} />
+                                                    <FaArrowUp color={filters.order_column === 'taxonomy_name' && filters.order_by === 'asc' ? 'black' : 'gray'} />
                                                 </Link>
 
                                                 <Link
@@ -334,11 +334,11 @@ export default function Index() {
                                                     href={route('taxonomies.index', {
                                                         ...filters,
                                                         order_by: 'desc', 
-                                                        order_column: 'cpt_name'  
+                                                        order_column: 'taxonomy_name'  
                                                     })}
-                                                    className={`btn btn-link p-0 ${filters.order_column === 'cpt_name' && filters.order_by === 'desc' ? 'active' : ''}`}
+                                                    className={`btn btn-link p-0 ${filters.order_column === 'taxonomy_name' && filters.order_by === 'desc' ? 'active' : ''}`}
                                                 >
-                                                    <FaArrowDown color={filters.order_column === 'cpt_name' && filters.order_by === 'desc' ? 'black' : 'gray'} />
+                                                    <FaArrowDown color={filters.order_column === 'taxonomy_name' && filters.order_by === 'desc' ? 'black' : 'gray'} />
                                                 </Link>
                                             </div>
                                         </th>
@@ -370,7 +370,11 @@ export default function Index() {
                                                 </Link>
                                             </div>
                                         </th>
-
+                                        <th>
+                                            <div className="d-flex align-items-center">
+                                                <span className="me-3">Post Type</span>
+                                            </div>
+                                        </th>
 
                                         
                                     </tr>
@@ -452,6 +456,22 @@ export default function Index() {
                                                                 </Link>
 
                                                             </span>
+                                                            {taxonomy.status === 'draft' &&
+                                                                <span className="publish ms-2">
+                                                                     | 
+                                                                    <Link
+                                                                        as="button"
+                                                                        method="put"
+                                                                        href={route('taxonomy.update.status', [taxonomy.id, 'publish'])}
+                                                                        className="text-primary ms-2"
+                                                                        style={{ fontSize: '13px' }}
+                                                                        
+                                                                    >
+                                                                        Publish
+                                                                    </Link>
+
+                                                                </span>
+                                                            }
                                                         </>
                                                     }
                                                     
@@ -460,6 +480,7 @@ export default function Index() {
                                             </td>
                                             <td>{taxonomy.taxonomy_name}</td>
                                             <td>{taxonomy.singular_name}</td>
+                                            <td>{taxonomy.post_types[0].title} - ({taxonomy.post_types[0].cpt_name})</td>
                                             
                                         </tr>
                                     ))}

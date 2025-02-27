@@ -5,7 +5,7 @@ import { FaChevronDown, FaChevronUp, FaEye, FaMapPin, FaCalendar } from 'react-i
 import { toast } from 'react-toastify';
 
 
-export default function Create({ errors, old, users }) {
+export default function Create({ errors, old, users, postTypes }) {
    
     const current_user = usePage().props.auth.user;
     const [localErrors, setLocalErrors] = useState({});
@@ -14,7 +14,6 @@ export default function Create({ errors, old, users }) {
     });
     const [isOpenStatusBox, setIsOpenStatusBox] = useState(false);
     const [isOpenVisibilityBox, setIsOpenVisibilityBox] = useState(false);
-    const [support, setSupports] = useState(['title', 'editor']);
     
     // UseForm hook initialization
     const { data, setData, post, processing, reset } = useForm({
@@ -24,7 +23,7 @@ export default function Create({ errors, old, users }) {
         description: old?.description || "",
         status: old?.status || "publish", 
         visibility: old?.visibility || 'public',
-        supports: old?.supports || support,
+        post_type: old?.post_type || "",
         author_id: old?.author_id || current_user.id, 
     });
 
@@ -61,18 +60,7 @@ export default function Create({ errors, old, users }) {
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
 
-        if (name === "supports") {
-            // Handle multi-checkbox change
-            setData((prevData) => {
-             
-                const newSupports = checked
-                    ? [...prevData.supports, value] 
-                    : prevData.supports.filter(item => item !== value);  
-                    
-                return { ...prevData, supports: newSupports }; 
-            });
-        }
-        else if(name === "cpt_name"){
+        if(name === "taxonomy_name"){
             setData(name, value.toLowerCase());
         } else {
             setData(name, value);
@@ -82,7 +70,7 @@ export default function Create({ errors, old, users }) {
     // Handle form submission
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route('posttype.store'), {
+        post(route('taxonomy.store'), {
             onFinish: () => {
                 // Optional reset logic (currently commented out)
                 // reset();
@@ -119,11 +107,11 @@ export default function Create({ errors, old, users }) {
   
     return (
         <AppLayout>
-            <Head title="Post Types" />
+            <Head title="Add Taxonomy" />
             {/* Page Header Section */}
             <div className="row mb-4">
                 <div className="col-12 d-flex align-items-center">
-                    <h2 className="page-title mr-2">Create New Custom Post Type</h2>
+                    <h2 className="page-title mr-2">Create New Taxonomy</h2>
                 </div>
             </div>
 
@@ -147,7 +135,7 @@ export default function Create({ errors, old, users }) {
             <form onSubmit={handleSubmit} autoComplete="off">
                 <div className="row mb-4">
                     <div className="col-8">
-                        {/* Form Section to Create Post Type */}
+                          {/* Form Section to Create Taxonomy */}
                         <div className="row">
                             <div className="col-12">
                                 <div className="card mb-4">
@@ -166,7 +154,7 @@ export default function Create({ errors, old, users }) {
                                                 onChange={handleChange}
                                             />
                                             <small className="form-text text-muted">
-                                                Name of the post type shown in the menu (usually plural).
+                                                Name of the taxonomy shown in the menu (usually plural).
                                             </small>
                                         </div>
                                     </div>
@@ -175,17 +163,17 @@ export default function Create({ errors, old, users }) {
                                     <div className="card-body">
                                         <div className="form-fields">
                                             
-                                            {/* CPT Name Input Field */}
+                                            {/* Taxonomy Name Input Field */}
                                             <div className="mb-3">
-                                                <label htmlFor="cpt_name" className="form-label">
-                                                    CPT Name (Slug)<span className="text-danger">*</span>
+                                                <label htmlFor="taxonomy_name" className="form-label">
+                                                    Taxonomy Name (Slug)<span className="text-danger">*</span>
                                                 </label>
                                                 <input
                                                     type="text"
-                                                    id="cpt_name"
-                                                    name="cpt_name"
+                                                    id="taxonomy_name"
+                                                    name="taxonomy_name"
                                                     className="form-control"
-                                                    value={data.cpt_name}
+                                                    value={data.taxonomy_name}
                                                     onChange={handleChange}
                                                 />
                                                 <small className="form-text text-muted">
@@ -205,7 +193,7 @@ export default function Create({ errors, old, users }) {
                                                     onChange={handleChange}
                                                 />
                                                 <small className="form-text text-muted">
-                                                    Name for one object of this post type.
+                                                    Name for one object of this taxonomy.
                                                 </small>
                                             </div>
 
@@ -224,27 +212,24 @@ export default function Create({ errors, old, users }) {
                                                 </small>
                                             </div>
 
-                                            {/* Support Fields */}
+                                            {/* Post Type */}
                                             <div className="mb-3">
-                                                <label className="form-label">Supports</label>
-                                                <p>Enable core features for this post type</p>
-                                                {['title', 'editor', 'excerpt', 'featured_image', 'author'].map((support) => (
-                                                    <div className="form-check" key={support}>
-                                                        <input
-                                                            type="checkbox"
-                                                            className="form-check-input"
-                                                            id={support}
-                                                            name="supports"
-                                                            value={support}
-                                                            checked={data.supports.includes(support)}
-                                                            onChange={handleChange}
-                                                        />
-                                                        <label className="form-check-label" htmlFor={support}>{support.replace('_', ' ').toUpperCase()}</label>
-                                                    </div>
-                                                ))}
+                                                <label htmlFor="post_type" className="form-label">Post Type</label>
+                                                <select
+                                                    id="post_type"
+                                                    name="post_type"
+                                                    className="form-control"
+                                                    value={data.post_type}
+                                                    onChange={handleChange}
+                                                >
+                                                    <option value="">Select Post Type</option>
+                                                    {postTypes && postTypes.map(postType => (
+                                                        <option key={postType.id} value={postType.id}>
+                                                            {postType.title}
+                                                        </option>
+                                                    ))}
+                                                </select>
                                             </div>
-
-                                            
                                         </div>
                                     </div>
                                 </div>

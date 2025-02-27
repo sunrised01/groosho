@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\PostController;
 use App\Http\Controllers\Admin\CptController;
 use App\Http\Controllers\Admin\PostTypeController;
 use App\Http\Controllers\Admin\TaxonomiesController;
+use App\Http\Controllers\Admin\TremController;
 use App\Http\Middleware\AdminMiddleware;
 
 // Public Route: Home Page
@@ -63,34 +64,43 @@ Route::prefix('admin')->middleware(['admin', AdminMiddleware::class])->group(fun
     Route::get('/cpt', [CptController::class, 'index'])->name('cpt.index'); // CPT Overview
    
     // Post Types Routes
-    Route::prefix('posttype')->group(function () {
-        Route::get('/', [PostTypeController::class, 'index'])->name('posttype.index');
-        Route::get('/create', [PostTypeController::class, 'create'])->name('posttype.create');
-        Route::post('/create', [PostTypeController::class, 'store'])->name('posttype.store');
-        Route::get('/{id}/edit', [PostTypeController::class, 'edit'])->name('posttype.edit');
-        Route::post('{id}/edit', [PostTypeController::class, 'update'])->name('posttype.update');
-        Route::put('{id}/{status}', [PostTypeController::class, 'updateStatus'])->name('posttype.update.status');
-        Route::post('/bluk/{status}', [PostTypeController::class, 'bulkAction'])->name('posttype.bulk.action');
+    Route::prefix('cpt')->group(function () {
+        Route::get('/posttypes', [PostTypeController::class, 'index'])->name('posttype.index');
+        Route::get('posttype/create', [PostTypeController::class, 'create'])->name('posttype.create');
+        Route::post('posttype/create', [PostTypeController::class, 'store'])->name('posttype.store');
+        Route::get('posttype/{id}/edit', [PostTypeController::class, 'edit'])->name('posttype.edit');
+        Route::post('posttype/{id}/edit', [PostTypeController::class, 'update'])->name('posttype.update');
+        Route::put('posttype/{id}/{status}', [PostTypeController::class, 'updateStatus'])->name('posttype.update.status');
+        Route::post('posttype/bluk/{status}', [PostTypeController::class, 'bulkAction'])->name('posttype.bulk.action');
+
+         // Taxonomies Routes
+        
+        Route::get('/taxonomies', [TaxonomiesController::class, 'index'])->name('taxonomies.index');
+        Route::get('taxonomy/create', [TaxonomiesController::class, 'create'])->name('taxonomy.create');
+        Route::post('taxonomy/create', [TaxonomiesController::class, 'store'])->name('taxonomy.store');
+        Route::get('taxonomy/{id}/edit', [TaxonomiesController::class, 'edit'])->name('taxonomy.edit');
+        Route::post('taxonomy/{id}/edit', [TaxonomiesController::class, 'update'])->name('taxonomy.update');
+        Route::put('taxonomy/{id}/{status}', [TaxonomiesController::class, 'updateStatus'])->name('taxonomy.update.status');
+        Route::post('taxonomy/bluk/{status}', [TaxonomiesController::class, 'bulkAction'])->name('taxonomy.bulk.action');
     });
     
+    Route::prefix('pt')->group(function () {
+        // Post Management Routes (for handling different post types)
+        Route::get('{post_type}', [PostController::class, 'index'])->name('posts.index'); 
+        Route::get('{post_type}/create', [PostController::class, 'create'])->name('posts.create');  
+        Route::get('{post_type}/{post}/edit', [PostController::class, 'edit'])->name('posts.edit'); 
+        Route::put('{post_type}/{post}', [PostController::class, 'update'])->name('posts.update');  
+        Route::delete('{post_type}/{post}', [PostController::class, 'destroy'])->name('posts.destroy');  
+    });
 
-    // Taxonomies Routes
-        
-    Route::get('/taxonomies', [TaxonomiesController::class, 'index'])->name('taxonomies.index');
-    Route::get('taxonomy/create', [TaxonomiesController::class, 'create'])->name('taxonomy.create');
-    Route::post('taxonomy/create', [TaxonomiesController::class, 'store'])->name('taxonomy.store');
-    Route::get('taxonomy/{id}/edit', [TaxonomiesController::class, 'edit'])->name('taxonomy.edit');
-    Route::post('taxonomy/{id}/edit', [TaxonomiesController::class, 'update'])->name('taxonomy.update');
-    Route::put('taxonomy/{id}/{status}', [TaxonomiesController::class, 'updateStatus'])->name('taxonomy.update.status');
-    Route::post('taxonomy/bluk/{status}', [TaxonomiesController::class, 'bulkAction'])->name('taxonomy.bulk.action');
-   
-
-     // Post Management Routes (for handling different post types)
-     Route::get('{post_type}', [PostController::class, 'index'])->name('posts.index'); 
-     Route::get('{post_type}/create', [PostController::class, 'create'])->name('posts.create');  
-     Route::get('{post_type}/{post}/edit', [PostController::class, 'edit'])->name('posts.edit'); 
-     Route::put('{post_type}/{post}', [PostController::class, 'update'])->name('posts.update');  
-     Route::delete('{post_type}/{post}', [PostController::class, 'destroy'])->name('posts.destroy');  
+    Route::prefix('trem')->group(function () {
+        // Term Management Routes (for handling different post types)
+        Route::get('{trem}', [TremController::class, 'index'])->name('trem.index'); 
+        Route::get('{trem}/create', [TremController::class, 'create'])->name('trem.create');  
+        Route::get('{trem}/{post}/edit', [TremController::class, 'edit'])->name('trem.edit'); 
+        Route::put('{trem}/{post}', [TremController::class, 'update'])->name('trem.update');  
+        Route::delete('{trem}/{post}', [TremController::class, 'destroy'])->name('trem.destroy');  
+    });
  
 });
 

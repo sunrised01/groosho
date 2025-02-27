@@ -1025,4 +1025,40 @@ td {
   margin-bottom: 30px;
   font-size: 14px;
 }
+
+.menu-item.group {
+  position: relative;
+}
+
+.menu-item.group:hover .hover-items {
+  display: block;
+  position: absolute;
+  background: white; 
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%); 
+  padding-left: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); 
+}
+
+.menu-item.group:hover .hover-items::before {
+  content: '';
+  position: absolute;
+  left: -10px; 
+  top: 50%;
+  transform: translateY(-50%); 
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent; 
+  border-left: 10px solid #2271b1; 
+}
+
+.menu-sub.hover-items .menu-link {
+	padding: 0 45px;
+	margin: 0 5px !important;
+}
+
+.menu-sub.hover-items {
+	padding-left: 0 !important;
+}
+
 /*# sourceMappingURL=theme-default.css.map */

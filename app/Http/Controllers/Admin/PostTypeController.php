@@ -300,26 +300,44 @@ class PostTypeController extends Controller
     public function updateStatus(Request $request, $id, $status)
     {
         try {
-                        // Find the post type by ID and update its status to 'trash'
+            // Validate that the status is one of the allowed values
+            $validStatuses = ['publish', 'draft', 'trash', 'delete'];
+            
+            if (!in_array($status, $validStatuses)) {
+                return redirect()->back()->with('error', 'Invalid status provided.');
+            }
+            
+            // Find the post type by ID and update its status to 'trash'
             $postType = PostType::findOrFail($id);
+            $referer = $request->headers->get('referer');
 
-            if($status == 'delete'){
+            if ($status == 'delete') {
                 $postType->delete();
-            }
-            else{
+                $message = 'Post type successfully deleted';
+            } elseif ($status == 'trash') {
                 $postType->status = $status;
-                $postType->save(); 
-            }            
-            return redirect()->back();
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            // Handle validation exceptions and log the error
-            if (App::environment('production')) {
-                $error = 'PostType not found';
-                Log::error('PostType not found: '. $e->getMessage());
+                $postType->save();
+                $message = 'Post type successfully moved to trash';
+            } elseif ($status == 'publish') {
+                $postType->status = $status;
+                $postType->save();
+                $message = 'Post type has been published';
+            } elseif ($status == 'draft') {
+                $postType->status = $status;
+                $postType->save();
+                $message = 'Post type has been restored from trash';
+            }  
+            
+            // Redirect based on the referer URL (Edit or Index page)
+            if (strpos($referer, route('posttype.edit', $postType->id)) !== false) {
+                // Request came from the Edit page, redirect to the index page
+                return redirect()->route('posttype.index')->with('success', $message);
             } else {
-                $error = 'Error: ' . $e->getMessage();
+                // Request came from the Index page or elsewhere, redirect back
+                return back()->with('success', $message);
             }
-            return redirect()->back()->with('error', $error);
+
+
         } catch (\Exception $e) {
             // Log the error and handle non-production environments with detailed error message
             if (App::environment('production')) {
@@ -335,26 +353,29 @@ class PostTypeController extends Controller
     public function bulkAction(Request $request, $status)
     {
         try {
+            // Validate that the 'ids' array is not empty
+            if ($request->query('ids') == null) {
+                return redirect()->back()->with('error', 'No IDs selected.');
+            }
             // Get the 'ids' from the query string
             $ids = explode(',', $request->query('ids')); 
             
-            // Validate that the 'ids' array is not empty
-            if (empty($ids)) {
-                return redirect()->back()->with('error', 'No IDs provided.');
-            }
             
             // Check for the status and perform actions accordingly
             if ($status == 'delete_permanently') {
                 PostType::whereIn('id', $ids)->delete();
+                $message = 'Selected post type successfully deleted';
             } else if ($status == 'move_to_trash') {
                 PostType::whereIn('id', $ids)->update(['status' => 'trash']);
+                $message = 'Selected post type successfully moved to trash';
             }
             else if ($status == 'restore') {
                 PostType::whereIn('id', $ids)->update(['status' => 'draft']);
+                $message = 'Selected post type has been restored from trash';
             }
 
             // Redirect back after successful action
-            return redirect()->back()->with('success', 'Action applied successfully.');
+            return redirect()->back()->with('success', $message);
 
         } catch (\Exception $e) {
             // Log the error and handle non-production environments with detailed error message

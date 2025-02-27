@@ -18,7 +18,7 @@ export default function Index() {
     const [currentPage] = useState(pagination.current_page);
     const [lastPage] = useState(pagination.last_page);
     const [selectedRows, setSelectedRows] = useState([]);
-    const [dateFilter, setDateFilter] = useState(filters.dateFilter || 'all');
+    const [dateFilter, setDateFilter] = useState(filters.date_filter || 'all');
     const [searchFilter, setSearchFilter] = useState(filters.s || '');
     const [perPage] = useState(filters.per_page || 10);
     const [bulkAction, setBulkAction] = useState(''); 
@@ -74,7 +74,7 @@ export default function Index() {
             toast.error(erroeMessage); 
         }
 
-    }, [successMessage, erroeMessage]); 
+    }, [successMessage, erroeMessage, loading]); 
 
     return (
         <AppLayout>
@@ -388,9 +388,7 @@ export default function Index() {
                                             <td >
                                                 {postType.status === 'trash' ?
                                                     <div className="text-black fw-bold">
-                                                    {postType.title} {postType.status === 'draft' &&
-                                                        <span className="fw-bold text-black">- Draft</span>
-                                                        }
+                                                        {postType.title}
                                                     </div>
                                                 :
                                                 <Link href={route('posttype.edit', postType.id)} className="text-decoration-none fw-bold">
@@ -452,6 +450,22 @@ export default function Index() {
                                                                 </Link>
 
                                                             </span>
+                                                            {postType.status === 'draft' &&
+                                                                <span className="publish ms-2">
+                                                                     | 
+                                                                    <Link
+                                                                        as="button"
+                                                                        method="put"
+                                                                        href={route('posttype.update.status', [postType.id, 'publish'])}
+                                                                        className="text-primary ms-2"
+                                                                        style={{ fontSize: '13px' }}
+                                                                        
+                                                                    >
+                                                                        Publish
+                                                                    </Link>
+
+                                                                </span>
+                                                            }
                                                         </>
                                                     }
                                                     
