@@ -958,10 +958,11 @@ html:not(.layout-menu-collapsed) .bg-menu-theme .menu-inner .menu-item .menu-lin
   }
 }
 
-.position-relative {
+tr.position-relative.position-relative {
 	position: relative !important;
 	height: 58px !important;
 }
+
 tr.position-relative:hover .action-icons {
   display: block;
 }
@@ -1012,8 +1013,6 @@ td {
   background: white;
   padding: 20px;
   border-radius: 8px;
-  text-align: center;
-  width: 300px;
 }
 
 .modal-content h3 {

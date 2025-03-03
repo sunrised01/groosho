@@ -271,6 +271,9 @@ class TaxonomiesController extends Controller
             if (!empty($request->post_type)) {
                 $taxonomy->postTypes()->attach($request->post_type);
             } 
+            else{
+                $taxonomy->postTypes()->detach($request->post_type);
+            }
 
             // Redirect to the edit page with success message
             return redirect()->route('taxonomy.edit', $id)->with('success', 'Taxonomy updated successfully.');

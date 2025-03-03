@@ -66,7 +66,7 @@ class PostTypeController extends Controller
         $query->orderBy($orderColumn, $orderBy);
 
         // Paginate the results
-        $postTypes = $query->paginate($perPage);
+        $postTypes = $query->with('taxonomies')->paginate($perPage);
 
         // Get unique months from the created_at field for filtering by date
         $months = PostType::selectRaw('YEAR(created_at) as year, MONTH(created_at) as month')

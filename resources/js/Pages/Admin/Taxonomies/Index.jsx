@@ -480,7 +480,13 @@ export default function Index() {
                                             </td>
                                             <td>{taxonomy.taxonomy_name}</td>
                                             <td>{taxonomy.singular_name}</td>
-                                            <td>{taxonomy.post_types[0].title} - ({taxonomy.post_types[0].cpt_name})</td>
+                                            
+                                            <td>
+                                                {Array.isArray(taxonomy.post_types) && taxonomy.post_types.length > 0
+                                                    ? taxonomy.post_types.map(post_type => `${post_type.title} (${post_type.cpt_name})`).join(', ')
+                                                    : '-'}
+                                            </td>
+
                                             
                                         </tr>
                                     ))}

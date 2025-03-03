@@ -1,8 +1,11 @@
 import React from "react";
 import AppLayout from '@/Pages/Admin/Layouts/AppLayout';
-import { Head } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
+
 
 export default function Index() {
+    const { customPostTyps, customTaxonomies } = usePage().props;
+
     return (
         <AppLayout>
             <Head title="Custom Post Type" />
@@ -20,7 +23,13 @@ export default function Index() {
                         </div>
                         <div className="card-body">
                             <p>Listing of all custom post types</p>
-                            <button className="btn btn-primary">New Custom Post Type</button>
+                            <ul>
+                                {customPostTyps.map((customPostType, index) => (
+                                    <li key={index}>{customPostType.title}</li>
+                                ))}
+                            </ul>
+                            
+                            <Link href={route('posttype.index')} className="btn btn-primary">New Custom Post Type</Link>
                         </div>
                     </div>
                 </div>
@@ -32,7 +41,12 @@ export default function Index() {
                         </div>
                         <div className="card-body">
                             <p>Listing of all custom taxonomies</p>
-                            <button className="btn btn-primary">New Custom Taxonomy</button>
+                            <ul>
+                                {customTaxonomies.map((customTaxonomy, index) => (
+                                    <li key={index}>{customTaxonomy.title}</li>
+                                ))}
+                            </ul>
+                            <Link href={route('taxonomies.index')} className="btn btn-primary">New Custom Taxonomy</Link>
                         </div>
                     </div>
                 </div>

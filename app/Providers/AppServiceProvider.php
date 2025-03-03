@@ -26,9 +26,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $postTypes = PostType::select('id', 'title', 'cpt_name')->where('status', 'publish')->with('taxonomies')->get();
-
-
         Vite::prefetch(concurrency: 3);
         Inertia::share([
             'flash' => function () {
@@ -39,7 +36,6 @@ class AppServiceProvider extends ServiceProvider
                 ];
             },
             'session_expiry_time' => config('session.lifetime'),
-            'postTypesmenu' => $postTypes,
         ]);
     }
 }

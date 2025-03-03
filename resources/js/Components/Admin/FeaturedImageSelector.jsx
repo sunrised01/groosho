@@ -5,7 +5,7 @@ import { MdPictureAsPdf, MdCheckCircle } from "react-icons/md";
 
 
 
-const FeaturedImageSelector = ({ onImageSelect }) => {
+const FeaturedImageSelector = ({ onImageSelect, buttonname, filetype }) => {
 
    const [isOpen, setIsOpen] = useState(false);
    const [activeTab, setActiveTab] = useState('upload');
@@ -30,17 +30,18 @@ const FeaturedImageSelector = ({ onImageSelect }) => {
    const handleTabChange = (tab) => {
       setActiveTab(tab);
       if (tab === 'media' && files.length === 0) {
-         fetchFiles();
+         fetchFiles(1);
       }
    };
 
    // Fetch files from the backend (Laravel)
-   const fetchFiles = async () => {
+   const fetchFiles = async (page) => {
       setLoading(true);
       try {
          const response = await axios.get(route('files.fetch'), {
             params: {
-               page: currentPage,
+               page: page,
+               filetype: filetype,
             }
          });
          setFiles((prevFiles) => [...prevFiles, ...response.data.files]);
@@ -58,8 +59,7 @@ const FeaturedImageSelector = ({ onImageSelect }) => {
    // Handel Load More button function
    const handleLoadMore = () => {
       if (currentPage < lastPage) {
-         setCurrentPage((prevPage) => prevPage + 1);
-         fetchFiles();
+         fetchFiles(currentPage+1);
       }
    };
 
@@ -170,11 +170,8 @@ const FeaturedImageSelector = ({ onImageSelect }) => {
 
    const handleImageClick = (filedata) => {
       setSelectedFile(filedata);
+     
    };
-
-   const handleInsertFeaturedImage = () => {
-
-   }
  
    const handleCopyUrl = () => {
       const textField = document.createElement('textarea');
@@ -185,22 +182,30 @@ const FeaturedImageSelector = ({ onImageSelect }) => {
       document.body.removeChild(textField);
    };
 
+   const handelmageSelect = () => {
+      onImageSelect(selectedFile);
+      setIsOpen(false);
+   };
+
+   
+
    useEffect(() => {
       setSelectedFile(null);
       if (files.length > 0) {
          const sortedFiles = [...files].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
          const uploadedFiles = sortedFiles.filter(file => file.uploaded === 1);
+       
          if (uploadedFiles.length > 0) {
-            setSelectedFile(uploadedFiles.slice(0));
+            setSelectedFile(uploadedFiles[0]);
          }
       }
    }, [files]);
 
-console.log(selectedFile);
+   //console.log(currentPage);
    return (
       <div>
-         <button className="btn btn-outline-secondary" onClick={toggleModal}>
-            Select Featured Image
+         <button type="button" className="btn btn-outline-secondary" onClick={toggleModal}>
+            {buttonname ? buttonname : 'Select Featured Image'}
          </button>
 
          {/* Popup modal */}
@@ -216,7 +221,8 @@ console.log(selectedFile);
                         {/* Tab Navigation */}
                         <ul className="nav nav-tabs">
                            <li className="nav-item" role="presentation">
-                              <button
+                              <button 
+                              type="button" 
                                  className={`nav-link ${activeTab === 'upload' ? 'active' : ''}`}
                                  onClick={() => handleTabChange('upload')}
                               >
@@ -224,7 +230,8 @@ console.log(selectedFile);
                               </button>
                            </li>
                            <li className="nav-item" role="presentation">
-                              <button
+                              <button 
+                              type="button" 
                                  className={`nav-link ${activeTab === 'media' ? 'active' : ''}`}
                                  onClick={() => handleTabChange('media')}
                               >
@@ -252,7 +259,13 @@ console.log(selectedFile);
                                     <input
                                        type="file"
                                        onChange={handleFileChange}
-                                       accept="*/*"
+                                       accept={
+                                          filetype === 'image'
+                                            ? 'image/*'  
+                                            : filetype === 'video'
+                                            ? 'video/*'  
+                                            : '*/*'      
+                                        }
                                        multiple
                                        ref={fileInputRef}
                                        style={{ display: "none" }}
@@ -309,7 +322,7 @@ console.log(selectedFile);
                                           {files.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).map((file, index) => (
 
                                              <div
-                                                key={file.id}
+                                                key={`${file.id}-${index}`}
                                                 className={`col-cmd-2 p-5`}
                                              >
 
@@ -323,10 +336,10 @@ console.log(selectedFile);
                                                    )}
 
                                                    <div className="file-card-body">
-                                                      {file.type.startsWith("image") ? (
+                                                      {file.mime_type.startsWith("image") ? (
                                                          <div className="file-thumbnail" onClick={() => handleImageClick(file)}>
                                                             <img
-                                                               src={file.display_url}
+                                                               src={file.preview_url}
                                                                alt={file.name}
                                                                className="img-fluid rounded"
                                                             />
@@ -334,9 +347,9 @@ console.log(selectedFile);
                                                       ) : (
                                                          <div className="file-icon fileicon" onClick={() => handleImageClick(file)}>
                                                             {/* Use icons for other file types */}
-                                                            {file.type === "application/pdf" ? (
+                                                            {file.mime_type === "application/pdf" ? (
                                                                <MdPictureAsPdf className="text-danger" style={{ fontSize: '40px' }} />
-                                                            ) : file.type.startsWith("video") ? (
+                                                            ) : file.mime_type.startsWith("video") ? (
                                                                <FaVideo className="text-primary" style={{ fontSize: '40px' }} />
                                                             ) : (
                                                                <FaFileAlt className="text-secondary" style={{ fontSize: '40px' }} />
@@ -356,6 +369,7 @@ console.log(selectedFile);
                                     <div className="load-more text-center mt-5 ">
                                        {currentPage < lastPage && (
                                           <button
+                                             type="button" 
                                              onClick={handleLoadMore}
                                              disabled={loading}
                                              className="btn btn-primary"
@@ -374,18 +388,18 @@ console.log(selectedFile);
 
                                           <div className="row">
                                              <div className="col-md-4">
-                                                {selectedFile.type.startsWith("image") ? (
+                                                {selectedFile.mime_type.startsWith("image") ? (
                                                    <img
-                                                      src={selectedFile.display_url}
+                                                      src={selectedFile.preview_url}
                                                       alt={selectedFile.name}
                                                       className="img-fluid rounded mb-3"
                                                       style={{ maxHeight: "300px", objectFit: "contain" }}
                                                    />
                                                 ) : (
                                                    <div className="file-icon fileicon">
-                                                      {selectedFile.type === "application/pdf" ? (
+                                                      {selectedFile.mime_type === "application/pdf" ? (
                                                          <MdPictureAsPdf className="text-danger" style={{ fontSize: "40px" }} />
-                                                      ) : selectedFile.type.startsWith("video") ? (
+                                                      ) : selectedFile.mime_type.startsWith("video") ? (
                                                          <FaVideo className="text-primary" style={{ fontSize: "40px" }} />
                                                       ) : (
                                                          <FaFileAlt className="text-secondary" style={{ fontSize: "40px" }} />
@@ -403,7 +417,7 @@ console.log(selectedFile);
                                                 </div>
                                                 <div><strong>Uploaded by:</strong> admin</div>
                                                 <div><strong>File name:</strong> {selectedFile.name}</div>
-                                                <div><strong>File type:</strong> {selectedFile.type}</div>
+                                                <div><strong>File type:</strong> {selectedFile.mime_type}</div>
                                                 <div><strong>File size:</strong> {selectedFile.file_size}</div>
                                              </div>
                                           </div>
@@ -415,8 +429,8 @@ console.log(selectedFile);
                                                 type="text"
                                                 className="form-control"
                                                 name="title"
-                                                readOnly="true"
-                                                value={selectedFile.title}
+                                                readOnly={true}
+                                                value={selectedFile.title || ""}
                                              />
                                           </div>
                                           <div className="mb-3">
@@ -424,17 +438,17 @@ console.log(selectedFile);
                                              <input
                                                 type="text"
                                                 className="form-control"
-                                                value={selectedFile.caption}
+                                                value={selectedFile.caption || ""}
                                                 name="caption"
-                                                readOnly="true"
+                                                readOnly={true}
                                              />
                                           </div>
                                           <div className="mb-3">
                                              <label className="form-label">Description:</label>
                                              <textarea
                                                 className="form-control"
-                                                value={selectedFile.description}
-                                                readOnly="true"
+                                                value={selectedFile.description || ""}
+                                                readOnly={true}
                                                 name="description"
                                                 rows="3"
                                              ></textarea>
@@ -444,11 +458,12 @@ console.log(selectedFile);
                                              <input
                                                 type="text"
                                                 className="form-control"
-                                                value={selectedFile.url}
-                                                readOnly
+                                                value={selectedFile.url || ""}
+                                                readOnly={true}
                                                 onClick={(e) => e.target.select()}
                                              />
                                              <button
+                                                type="button" 
                                                 className="btn btn-outline-secondary mt-2"
                                                 onClick={handleCopyUrl}
                                              >
@@ -467,9 +482,15 @@ console.log(selectedFile);
                      </div>
                      <div className="modal-footer">
 
-                        <button type="button" className="btn btn-primary" onClick={handleInsertFeaturedImage}>
-                           Insert
-                        </button>
+                     <button 
+                        type="button" 
+                        className="btn btn-primary" 
+                        disabled={!selectedFile} 
+                        onClick={handelmageSelect} 
+                     >
+                     Insert
+                     </button>
+
                      </div>
                   </div>
                </div>

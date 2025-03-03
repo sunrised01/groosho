@@ -10,7 +10,7 @@ import { toast } from 'react-toastify';
 
 export default function Index() {
     const { postTypes, filters, pagination, months, totalCount, publishCount, trashCount, draftCount, flash } = usePage().props;
-    
+   
     const successMessage = flash.success;
     const erroeMessage = flash.error;
 
@@ -371,7 +371,11 @@ export default function Index() {
                                             </div>
                                         </th>
 
-
+                                        <th>
+                                            <div className="d-flex align-items-center">
+                                                <span className="me-3">Taxonomies</span>
+                                            </div>
+                                        </th>                
                                         
                                     </tr>
                                 </thead>
@@ -474,6 +478,15 @@ export default function Index() {
                                             </td>
                                             <td>{postType.cpt_name}</td>
                                             <td>{postType.singular_name}</td>
+                                            <td>
+                                                {Array.isArray(postType.taxonomies) && postType.taxonomies.length > 0
+                                                    ? postType.taxonomies.map(taxonomy => taxonomy.title).join(', ')
+                                                    : 
+                                                '-'}
+                                            </td>
+
+                                        
+
                                             
                                         </tr>
                                     ))}

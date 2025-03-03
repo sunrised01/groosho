@@ -28,17 +28,17 @@ export default function AuthLayout({ children }) {
         // Optionally, add events for page errors or failures
         Inertia.on("error", () => NProgress.done());
 
-        if (expireTime === 0) {
-            setShowExpiredPopup(true); 
-            return;
-        }
-        // Update the expire time every second
-        const timer = setInterval(() => {
-            setExpireTime(prevTime => prevTime - 1);
+        // if (expireTime === 0) {
+        //     setShowExpiredPopup(true); 
+        //     return;
+        // }
+        // // Update the expire time every second
+        // const timer = setInterval(() => {
+        //     setExpireTime(prevTime => prevTime - 1);
             
-        }, 1000);
+        // }, 1000);
 
-        return () => clearInterval(timer);
+        // return () => clearInterval(timer);
     }, [expireTime]);
 
     // Redirect user to login page when the modal is closed

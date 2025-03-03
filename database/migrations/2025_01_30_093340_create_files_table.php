@@ -18,7 +18,7 @@ return new class extends Migration
             $table->integer('author');
             $table->string('file_size');
             $table->string('path');
-            $table->string('type');
+            $table->string('mime_type');
             $table->string('small_path')->nullable();
             $table->string('thumb_path')->nullable();
             $table->text('caption')->nullable();

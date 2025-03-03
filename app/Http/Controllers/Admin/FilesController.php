@@ -18,10 +18,10 @@ class FilesController extends Controller
 
        
         $filesData = $files->map(function ($file) {
-            if (strpos($file->type, 'image/') !== false) {
-                $file->display_url = asset('storage/' . $file->small_path);
+            if (strpos($file->mime_type, 'image/') !== false) {
+                $file->preview_url = asset('storage/' . $file->small_path);
             } else {
-                $file->display_url = asset('storage/' . $file->path);
+                $file->preview_url = asset('storage/' . $file->path);
             }
             $file->url = asset('storage/' . $file->path);
             return $file;
@@ -43,16 +43,7 @@ class FilesController extends Controller
      */
     public function store(Request $request)
     {
-        $validator = \Validator::make($request->all(), [
-            'file' => 'required|file|mimes:jpg,png,jpeg,gif,webp,avi,mp4,pdf',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
+       
         $file = $request->file('file');
         $originalName = $file->getClientOriginalName();
         $extension = $file->getClientOriginalExtension();
@@ -117,17 +108,17 @@ class FilesController extends Controller
             'author' => auth()->user()->id,
             'file_size' => $fileSize,
             'path' => $resizedPaths['original'],
-            'type' => $fileType,
+            'mime_type' => $fileType,
             'small_path' => $resizedPaths['small'] ?? null,
             'thumb_path' => $resizedPaths['thumb'] ?? null,
         ];
 
         $file = Files::create($insertData);
 
-        if (strpos($file->type, 'image/') !== false) {
-            $file['display_url'] = asset('storage/' . $file->small_path);
+        if (strpos($file->mime_type, 'image/') !== false) {
+            $file['preview_url'] = asset('storage/' . $file->small_path);
         } else {
-            $file['display_url'] = asset('storage/' . $file->path);
+            $file['preview_url'] = asset('storage/' . $file->path);
         }
         $file['url'] = asset('storage/' . $file->path);
 
@@ -221,21 +212,32 @@ class FilesController extends Controller
     }
 
     /**
-     * Fetch files
+     * Fetch Files
      */
-    public function fetchFiels(Request $request)
+    public function fetchFiles(Request $request)
     {
-        $perPage = 12; 
+        $perPage = 20; 
         $page = $request->input('page', 1);
+        $filetype = $request->input('filetype', '');
 
         $filesQuery = Files::orderBy('created_at', 'desc');
+        
+        // Apply filters based on the filetype
+        if ($filetype === 'image') {
+            // Filter for image files (e.g., image/png, image/jpeg, etc.)
+            $filesQuery->whereIn('mime_type', ['image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/webp']);
+        } elseif ($filetype === 'video') {
+            // Filter for video files (e.g., video/mp4, video/avi, etc.)
+            $filesQuery->whereIn('mime_type', ['video/mp4', 'video/avi', 'video/mkv', 'video/webm', 'video/quicktime']);
+        }
+
         $files = $filesQuery->paginate($perPage, ['*'], 'page', $page);
 
         $filesData = $files->map(function ($file) {
-            if (strpos($file->type, 'image/') !== false) {
-                $file->display_url = asset('storage/' . $file->small_path);
+            if (strpos($file->mime_type, 'image/') !== false) {
+                $file->preview_url = asset('storage/' . $file->small_path);
             } else {
-                $file->display_url = asset('storage/' . $file->path);
+                $file->preview_url = asset('storage/' . $file->path);
             }
             $file->url = asset('storage/' . $file->path);
             return $file;

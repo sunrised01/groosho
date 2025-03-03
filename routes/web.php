@@ -12,7 +12,7 @@ use App\Http\Controllers\Admin\PostController;
 use App\Http\Controllers\Admin\CptController;
 use App\Http\Controllers\Admin\PostTypeController;
 use App\Http\Controllers\Admin\TaxonomiesController;
-use App\Http\Controllers\Admin\TremController;
+use App\Http\Controllers\Admin\TermsController;
 use App\Http\Middleware\AdminMiddleware;
 
 // Public Route: Home Page
@@ -61,7 +61,8 @@ Route::prefix('admin')->middleware(['admin', AdminMiddleware::class])->group(fun
     Route::get('/api/files', [FilesController::class, 'fetchFiles'])->name('files.fetch'); 
 
     // Custom Post Types Management Routes
-    Route::get('/cpt', [CptController::class, 'index'])->name('cpt.index'); // CPT Overview
+    Route::get('/cpt', [CptController::class, 'index'])->name('cpt.index'); 
+    Route::post('/cpt/fetch', [CptController::class, 'fetch'])->name('cpt.fetch'); 
    
     // Post Types Routes
     Route::prefix('cpt')->group(function () {
@@ -93,13 +94,13 @@ Route::prefix('admin')->middleware(['admin', AdminMiddleware::class])->group(fun
         Route::delete('{post_type}/{post}', [PostController::class, 'destroy'])->name('posts.destroy');  
     });
 
-    Route::prefix('trem')->group(function () {
+    Route::prefix('term')->group(function () {
         // Term Management Routes (for handling different post types)
-        Route::get('{trem}', [TremController::class, 'index'])->name('trem.index'); 
-        Route::get('{trem}/create', [TremController::class, 'create'])->name('trem.create');  
-        Route::get('{trem}/{post}/edit', [TremController::class, 'edit'])->name('trem.edit'); 
-        Route::put('{trem}/{post}', [TremController::class, 'update'])->name('trem.update');  
-        Route::delete('{trem}/{post}', [TremController::class, 'destroy'])->name('trem.destroy');  
+        Route::get('{taxonomy}', [TermsController::class, 'index'])->name('term.index'); 
+        Route::get('{taxonomy}/store', [TermsController::class, 'store'])->name('term.store'); 
+        Route::get('{taxonomy}/{post}/edit', [TermsController::class, 'edit'])->name('term.edit'); 
+        Route::put('{taxonomy}/{post}', [TermsController::class, 'update'])->name('term.update');  
+        Route::delete('{taxonomy}/{post}', [TermsController::class, 'destroy'])->name('term.destroy');  
     });
  
 });

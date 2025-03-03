@@ -227,7 +227,6 @@ export default function Files({ files,pagination }) {
                      {/* File Upload Section */}
                      <div className="upload-section">
                         <h5>Media Library</h5>
-                        {/* <FeaturedImageSelector onImageSelect={handleImageSelect} /> */}
                         <hr/>
                         <div
                            ref={dropAreaRef}
@@ -283,10 +282,10 @@ export default function Files({ files,pagination }) {
                                  <div className="file-card border rounded shadow-sm">
                                     <div className="file-card-body">
                                        {/* Check if the file is an image, and display a thumbnail */}
-                                       {file.type.startsWith("image") ? (
+                                       {file.mime_type.startsWith("image") ? (
                                           <div className="file-thumbnail" onClick={() => handleImageClick(file)}>
                                              <img
-                                                src={file.display_url}
+                                                src={file.preview_url}
                                                 alt={file.name}
                                                 className="img-fluid rounded"
                                              />
@@ -294,9 +293,9 @@ export default function Files({ files,pagination }) {
                                        ) : (
                                           <div className="file-icon fileicon" onClick={() => handleImageClick(file)}>
                                              {/* Use icons for other file types */}
-                                             {file.type === "application/pdf" ? (
+                                             {file.mime_type === "application/pdf" ? (
                                                 <MdPictureAsPdf className="text-danger" style={{ fontSize: '40px' }} />
-                                             ) : file.type.startsWith("video") ? (
+                                             ) : file.mime_type.startsWith("video") ? (
                                                 <FaVideo className="text-primary" style={{ fontSize: '40px' }} />
                                              ) : (
                                                 <FaFileAlt className="text-secondary" style={{ fontSize: '40px' }} />
@@ -329,9 +328,9 @@ export default function Files({ files,pagination }) {
                                     {/* File Preview Section */}
                                     <div className="row">
                                        <div className="col-md-4">
-                                       {selectedFile.type.startsWith("image") ? (
+                                       {selectedFile.mime_type.startsWith("image") ? (
                                           <img
-                                             src={selectedFile.display_url}
+                                             src={selectedFile.preview_url}
                                              alt={selectedFile.name}
                                              className="img-fluid rounded mb-3"
                                              style={{ maxHeight: "300px", objectFit: "contain" }}
@@ -339,9 +338,9 @@ export default function Files({ files,pagination }) {
                                        ) : (
                                           <div className="file-icon fileicon">
                                              {/* Placeholder for non-image files (icons or file type) */}
-                                             {selectedFile.type === "application/pdf" ? (
+                                             {selectedFile.mime_type === "application/pdf" ? (
                                                 <MdPictureAsPdf className="text-danger" style={{ fontSize: "40px" }} />
-                                             ) : selectedFile.type.startsWith("video") ? (
+                                             ) : selectedFile.mime_type.startsWith("video") ? (
                                                 <FaVideo className="text-primary" style={{ fontSize: "40px" }} />
                                              ) : (
                                                 <FaFileAlt className="text-secondary" style={{ fontSize: "40px" }} />
@@ -359,7 +358,7 @@ export default function Files({ files,pagination }) {
                                           </div>
                                           <div><strong>Uploaded by:</strong> admin</div>
                                           <div><strong>File name:</strong> {selectedFile.name}</div>
-                                          <div><strong>File type:</strong> {selectedFile.type}</div>
+                                          <div><strong>File type:</strong> {selectedFile.mime_type}</div>
                                           <div><strong>File size:</strong> {selectedFile.file_size}</div>
                                        </div>
                                     </div>
