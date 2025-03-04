@@ -97,7 +97,7 @@ Route::prefix('admin')->middleware(['admin', AdminMiddleware::class])->group(fun
     Route::prefix('term')->group(function () {
         // Term Management Routes (for handling different post types)
         Route::get('{taxonomy}', [TermsController::class, 'index'])->name('term.index'); 
-        Route::get('{taxonomy}/store', [TermsController::class, 'store'])->name('term.store'); 
+        Route::post('{taxonomy}/store', [TermsController::class, 'store'])->name('term.store'); 
         Route::get('{taxonomy}/{post}/edit', [TermsController::class, 'edit'])->name('term.edit'); 
         Route::put('{taxonomy}/{post}', [TermsController::class, 'update'])->name('term.update');  
         Route::delete('{taxonomy}/{post}', [TermsController::class, 'destroy'])->name('term.destroy');  

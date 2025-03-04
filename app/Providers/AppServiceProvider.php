@@ -26,12 +26,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+
         Vite::prefetch(concurrency: 3);
         Inertia::share([
             'flash' => function () {
                 return [
                     'success' => Session::get('success'),
                     'error' => Session::get('error'),
+                    'response' => Session::get('response'),
                     // You can add other session flash data if needed
                 ];
             },

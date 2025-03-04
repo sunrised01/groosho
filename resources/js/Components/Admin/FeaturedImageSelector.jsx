@@ -256,6 +256,7 @@ const FeaturedImageSelector = ({ onImageSelect, buttonname, filetype }) => {
                                     onDragLeave={handleDragLeave}
                                  >
                                     <p>Drag & Drop your files here or click to select</p>
+                                    
                                     <input
                                        type="file"
                                        onChange={handleFileChange}

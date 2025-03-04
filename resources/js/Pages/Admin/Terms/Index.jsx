@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Inertia } from '@inertiajs/inertia'; 
 import Dropdown from '@/Components/Dropdown';
 import AppLayout from '@/Pages/Admin/Layouts/AppLayout';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, usePage, useForm } from '@inertiajs/react';
 import FeaturedImageSelector from '@/Components/Admin/FeaturedImageSelector';
 import Pagination from '@/Components/Pagination';
 import { FaArrowUp, FaArrowDown, FaTimes } from 'react-icons/fa'; 
@@ -10,80 +10,124 @@ import { toast } from 'react-toastify';
 
 
 export default function Index() {
-    const { taxonomyData } = usePage().props;
+    const { taxonomyData, parentCategories, flash, errors, terms } = usePage().props;
+    console.log(terms)
+    const formData = flash?.response?.formData;
+    const [localerrors, setLocalErrors] = useState(flash?.response?.errors || {});
     const [featuredImage, setFeaturedImage] = useState(null);
-    const [formData, setFormData] = useState({
-        name: '',
-        slug: '',
-        description: '',
-        parentCategory: '',
-        image: null,
+    
+    
+     // UseForm hook initialization
+     const { data, setData, post, processing, reset } = useForm({
+        name: formData?.name || "",
+        slug: formData?.slug || "",
+        description: formData?.description || "",
+        parent_id: formData?.parent_id || 0, 
+        attachment_id: formData?.attachment_id || 0,
+        taxonomy: taxonomyData.taxonomy_name,
     });
 
     const insertFeaturedImage = (selectedFile) => {
         if(selectedFile){
             setFeaturedImage(selectedFile);
-            setFormData({ ...formData, image: selectedFile.id });
+            setData('attachment_id', selectedFile.id);
         }
      }
 
     const handleDeleteImage = () => {
         setFeaturedImage(null);  
-        setFormData({ ...formData, image: null });
+        setData('attachment_id', 0);
 
-    };
-    
-    const generateSlug = (text) => {
-        return text
-            .toLowerCase() 
-            .replace(/\s+/g, '-')
-            .replace(/[^\w-]/g, ''); 
     };
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        if (name === 'name') {
-            const generatedSlug = generateSlug(value);
-            setFormData({
-                ...formData,
-                [name]: value,
-                slug: generatedSlug,
-            });
-        
-        } 
-        else if (name === 'slug') {
+        if (name === 'slug') {
             const cleanedValue = value
                 .replace(/\s+/g, '-') 
                 .replace(/[^a-zA-Z0-9-]/g, '') 
                 .toLowerCase(); 
             
-            setFormData({ ...formData, [name]: cleanedValue });
+                setData(name, cleanedValue);
         }        
         else {
-            setFormData({ ...formData, [name]: value });
+            setData(name, value);
         }
     };
 
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route('term.store'), {
-            onFinish: () => {
-                // Optional reset logic (currently commented out)
-                // reset();
+        post(route('term.store', taxonomyData.taxonomy_name), {
+            onSuccess: (response) => {
+                setFeaturedImage(null);
+                reset();
             },
         });
     };
 
+   
+    const removeError = (key) => {
+        const newErrors = { ...errors };
+        delete newErrors[key];
+        setLocalErrors(newErrors);
+    };
+
+    useEffect(() => {
+        setLocalErrors(flash?.response?.errors || {});        
+    }, [flash?.response?.errors]);
+
+    const renderTermsInTable = (terms, level = 0) => {
+        return terms.map(term => (
+            
+            <React.Fragment key={term.id}>
+                <tr >
+                    <td style={{ textAlign: 'center' }}>
+                        <img 
+                            src={term.attachment ? term.attachment.small_url : ''} 
+                            alt="Term Image" 
+                            style={{
+                            marginTop: '12px',
+                            borderRadius: '2px', 
+                            objectFit: 'cover',
+                            }} 
+                        />
+                        </td>
+
+                    <td>{level > 0 ? '- '.repeat(level) : ''}{term.name}</td>
+                    <td>{term.slug}</td>
+                    <td>0</td>
+                </tr>
+
+                {term.childrens && term.childrens.length > 0 && renderTermsInTable(term.childrens, level + 1)}
+            </React.Fragment>
+        ));
+    };
+    
     return (
         <AppLayout>
             <Head title={taxonomyData.title} />
-            <div className="row mb-4">
+            <div className="row mb-4 ">
                 <div className="col-12 d-flex align-items-center">
                     <h2 className="page-title mr-2">{taxonomyData.title}</h2>
                 </div>
             </div>
-
+            {/* Display Error Messages */}
+            {Object.keys(localerrors).length > 0 && (
+                <div className="row mb-4 p-3">
+                    {Object.keys(localerrors).map((errorKey, index) => (
+                        <div key={index} className="alert alert-danger alert-dismissible fade show">
+                            <button
+                                type="button"
+                                className="btn-close"
+                                aria-label="Close"
+                                onClick={() => removeError(errorKey)}
+                            ></button>
+                            <p className="m-0">{localerrors[errorKey]}</p>
+                        </div>
+                    ))}
+                </div>
+            )}
             {/* Layout with 2 columns */}
             <div className="row">
                 {/* Left Column (Form Section) */}
@@ -91,9 +135,8 @@ export default function Index() {
                     <div className="card mb-4">
                         <div className="card-body">
                             <h4 className="card-title mb-4">Create New {taxonomyData.singular_name}</h4>
-
                             {/* Form */}
-                            <form onSubmit={handleSubmit}>
+                            <form onSubmit={handleSubmit} autoComplete="off">
                                 <div className="mb-3">
                                     <label htmlFor="name" className="form-label">Name</label>
                                     <input
@@ -101,7 +144,7 @@ export default function Index() {
                                         className="form-control"
                                         id="name"
                                         name="name"
-                                        value={formData.name}
+                                        value={data.name}
                                         onChange={handleInputChange}
                                         placeholder="Enter name"
                                     />
@@ -114,7 +157,7 @@ export default function Index() {
                                         className="form-control"
                                         id="slug"
                                         name="slug"
-                                        value={formData.slug}
+                                        value={data.slug}
                                         onChange={handleInputChange}
                                         placeholder="Enter slug"
                                     />
@@ -122,16 +165,18 @@ export default function Index() {
 
                                 {taxonomyData.taxonomy_name === 'category' && (
                                     <div className="mb-3">
-                                        <label htmlFor="parentCategory" className="form-label">Parent Category</label>
+                                        <label htmlFor="parent_id" className="form-label">Parent Category</label>
                                         <select
                                             className="form-select"
-                                            id="parentCategory"
-                                            name="parentCategory"
-                                            value={formData.parentCategory}
+                                            id="parent_id"
+                                            name="parent_id"
+                                            value={data.parent_id}
                                             onChange={handleInputChange}
                                         >
                                             <option value="">Select Parent Category</option>
-                                            {/* Add dynamic options for parent categories here */}
+                                            {parentCategories && parentCategories.map((parentCategory, index) => (
+                                                <option key={index} value={parentCategory.id}>{parentCategory.name}</option>
+                                            ))}
                                         </select>
                                     </div>
                                 )}
@@ -142,7 +187,7 @@ export default function Index() {
                                         className="form-control"
                                         id="description"
                                         name="description"
-                                        value={formData.description}
+                                        value={data.description}
                                         onChange={handleInputChange}
                                         rows="3"
                                         placeholder="Enter description"
@@ -190,7 +235,16 @@ export default function Index() {
                                     </div>
                                 )}
 
-                                <button type="submit" className="btn btn-primary">Create {taxonomyData.singular_name}</button>
+                                <button type="submit" className="btn btn-primary" disabled={processing}>
+                                    {processing ? (
+                                        <>
+                                            `Create ${taxonomyData.singular_name}` <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                        </>
+                                        
+                                    ) : (
+                                        `Create ${taxonomyData.singular_name}`
+                                    )}
+                                </button>
                             </form>
                         </div>
                     </div>
@@ -206,33 +260,14 @@ export default function Index() {
                             <table className="table">
                                 <thead>
                                     <tr>
-                                        <th>Image</th>
-                                        <th>Name</th>
-                                        <th>Slug</th>
-                                        <th>Count</th>
+                                        <th className="w-10">Icon</th>
+                                        <th className="w-40">Name</th>
+                                        <th className="w-30">Slug</th>
+                                        <th className="w-20">Count</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {/* Example row */}
-                                    <tr>
-                                        <td>
-                                            {/* Example image placeholder */}
-                                            <img src="path-to-image.jpg" alt="Category Image" className="img-fluid" style={{ width: "50px" }} />
-                                        </td>
-                                        <td>Jazz</td>
-                                        <td>jazz</td>
-                                        <td>10</td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            {/* Example image placeholder */}
-                                            <img src="path-to-image.jpg" alt="Category Image" className="img-fluid" style={{ width: "50px" }} />
-                                        </td>
-                                        <td>Bebop</td>
-                                        <td>bebop</td>
-                                        <td>5</td>
-                                    </tr>
-                                    {/* Add dynamic rows here based on your data */}
+                                    {renderTermsInTable(terms)}
                                 </tbody>
                             </table>
                         </div>

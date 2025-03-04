@@ -14,4 +14,9 @@ class Files extends Model
 
     // Optional: Define the table name if it differs from the default (e.g., 'files')
     protected $table = 'files';
+
+    public function term()
+    {
+        return $this->belongsTo(Terms::class, 'attachment_id');
+    }
 }
