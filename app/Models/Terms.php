@@ -13,7 +13,7 @@ class Terms extends Model
      *  Specify the fillable attributes to allow mass assignment.
     **/
 
-    protected $fillable = ['name', 'slug', 'parent_id', 'image_id', 'description'];
+    protected $fillable = ['name', 'slug', 'parent_id', 'attachment_id', 'taxonomy', 'description'];
 
     // Define the relationship to get child terms (direct children)
     public function children()

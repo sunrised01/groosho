@@ -56,19 +56,19 @@ const Sidebar = () => {
             return {
                 name: customPostType.title,
                 icon: <BsFileText />,
-                link: route('posts.index', customPostType.cpt_name),
+                link: route('posts.index', customPostType.slug),
                 subMenu: [
                     { 
                         name: `All ${customPostType.title}`,
-                        link: route('posts.index', customPostType.cpt_name) 
+                        link: route('posts.index', customPostType.slug) 
                     },
                     { 
                         name: 'Add New', 
-                        link: route('posts.create', customPostType.cpt_name) 
+                        link: route('posts.create', customPostType.slug) 
                     },
                     ...(hasTaxonomies ? customPostType.taxonomies.map(taxonomy => ({
                         name: taxonomy.title,
-                        link: route('term.index', taxonomy.taxonomy_name)  
+                        link: route('term.index', taxonomy.slug)  
                     })) : [])
                 ]
             };

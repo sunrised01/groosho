@@ -139,7 +139,7 @@ export default function Index() {
                         <input
                             type="text"
                             className="form-control"
-                            placeholder="Search by Title or CPT Name"
+                            placeholder="Search by Title"
                             defaultValue={searchFilter}
                             onChange={handleSearchChange}
                         />
@@ -317,57 +317,11 @@ export default function Index() {
                                         <th>
                                             <div className="d-flex align-items-center">
                                                 <span className="me-3">CPT Name(Slug)</span>
-                                                <Link
-                                                    as="button"
-                                                    href={route('posttype.index', {
-                                                        ...filters,
-                                                        order_by: 'asc', 
-                                                        order_column: 'cpt_name'
-                                                    })}
-                                                    className={`btn btn-link p-0 ${filters.order_column === 'cpt_name' && filters.order_by === 'asc' ? 'active' : ''}`}
-                                                >
-                                                    <FaArrowUp color={filters.order_column === 'cpt_name' && filters.order_by === 'asc' ? 'black' : 'gray'} />
-                                                </Link>
-
-                                                <Link
-                                                    as="button"
-                                                    href={route('posttype.index', {
-                                                        ...filters,
-                                                        order_by: 'desc', 
-                                                        order_column: 'cpt_name'  
-                                                    })}
-                                                    className={`btn btn-link p-0 ${filters.order_column === 'cpt_name' && filters.order_by === 'desc' ? 'active' : ''}`}
-                                                >
-                                                    <FaArrowDown color={filters.order_column === 'cpt_name' && filters.order_by === 'desc' ? 'black' : 'gray'} />
-                                                </Link>
                                             </div>
                                         </th>
                                         <th>
                                             <div className="d-flex align-items-center">
                                                 <span className="me-3">Singular Name</span>
-                                                <Link
-                                                    as="button"
-                                                    href={route('posttype.index', {
-                                                        ...filters,
-                                                        order_by: 'asc', 
-                                                        order_column: 'singular_name'
-                                                    })}
-                                                    className={`btn btn-link p-0 ${filters.order_column === 'singular_name' && filters.order_by === 'asc' ? 'active' : ''}`}
-                                                >
-                                                    <FaArrowUp color={filters.order_column === 'singular_name' && filters.order_by === 'asc' ? 'black' : 'gray'} />
-                                                </Link>
-
-                                                <Link
-                                                     as="button"
-                                                    href={route('posttype.index', {
-                                                        ...filters,
-                                                        order_by: 'desc', 
-                                                        order_column: 'singular_name'  
-                                                    })}
-                                                    className={`btn btn-link p-0 ${filters.order_column === 'singular_name' && filters.order_by === 'desc' ? 'active' : ''}`}
-                                                >
-                                                    <FaArrowDown color={filters.order_column === 'singular_name' && filters.order_by === 'desc' ? 'black' : 'gray'} />
-                                                </Link>
                                             </div>
                                         </th>
 
@@ -381,7 +335,7 @@ export default function Index() {
                                 </thead>
                                 <tbody>
                                     {postTypes.data.map((postType) => (
-                                        <tr key={postType.id} className="position-relative">
+                                        <tr key={postType.id} className="tb-tr">
                                             <td>
                                                 <input
                                                     type="checkbox"
@@ -389,7 +343,7 @@ export default function Index() {
                                                     onChange={() => handleRowSelection(postType.id)}
                                                 />
                                             </td>
-                                            <td >
+                                            <td className="position-relative">
                                                 {postType.status === 'trash' ?
                                                     <div className="text-black fw-bold">
                                                         {postType.title}
@@ -476,7 +430,7 @@ export default function Index() {
                                                 
                                                 </div>
                                             </td>
-                                            <td>{postType.cpt_name}</td>
+                                            <td>{postType.slug}</td>
                                             <td>{postType.singular_name}</td>
                                             <td>
                                                 {Array.isArray(postType.taxonomies) && postType.taxonomies.length > 0

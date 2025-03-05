@@ -131,11 +131,8 @@ class FilesController extends Controller
     private function resizeImage($filePath, $path, $uniqueName, $width, $height, $size)
     {
     
-        // Get image details
         list($originalWidth, $originalHeight, $imageType) = getimagesize($filePath);
 
-       
-        // Create image from file based on its type
         switch ($imageType) {
             case IMAGETYPE_JPEG:
                 $image = imagecreatefromjpeg($filePath);
@@ -153,16 +150,12 @@ class FilesController extends Controller
                 throw new \Exception('Unsupported image type');
         }
 
-        // Create a new empty image with the desired dimensions
         $resizedImage = imagecreatetruecolor($width, $height);
 
-        // Resize the image
         imagecopyresampled($resizedImage, $image, 0, 0, 0, 0, $width, $height, $originalWidth, $originalHeight);
 
-        // Optional: Sharpen the image (this is a basic method, not as advanced as the Spatie one)
         imagefilter($resizedImage, IMG_FILTER_CONTRAST, -10);
 
-        // Save the resized image to the storage path
         $resizedFilePath = storage_path('app/public/' . $path . $size . '_' . $uniqueName);
        
         switch ($imageType) {
@@ -180,7 +173,6 @@ class FilesController extends Controller
                 break;
         }
 
-        // Free up memory
         imagedestroy($image);
         imagedestroy($resizedImage);
     }
@@ -191,21 +183,18 @@ class FilesController extends Controller
 
     public function update(Request $request)
     {
-        // Validate the incoming request
         $validated = $request->validate([
             'title' => 'string|max:255',
             'caption' => 'nullable|string|max:255',
             'description' => 'nullable|string',
         ]);
 
-        // Find the file by ID and update the information
         $file = Files::findOrFail($request->id);
         $file->title = $validated['title'];
         $file->caption = $validated['caption'];
         $file->description = $validated['description'];
         $file->save();
 
-        // Return a JSON response indicating success
         return response()->json([
             'message' => 'File information updated successfully!',
         ]);
@@ -222,12 +211,9 @@ class FilesController extends Controller
 
         $filesQuery = Files::orderBy('created_at', 'desc');
         
-        // Apply filters based on the filetype
         if ($filetype === 'image') {
-            // Filter for image files (e.g., image/png, image/jpeg, etc.)
             $filesQuery->whereIn('mime_type', ['image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/webp']);
         } elseif ($filetype === 'video') {
-            // Filter for video files (e.g., video/mp4, video/avi, etc.)
             $filesQuery->whereIn('mime_type', ['video/mp4', 'video/avi', 'video/mkv', 'video/webm', 'video/quicktime']);
         }
 

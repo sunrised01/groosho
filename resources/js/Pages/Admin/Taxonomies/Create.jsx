@@ -60,7 +60,7 @@ export default function Create({ errors, old, users, postTypes }) {
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
 
-        if(name === "taxonomy_name"){
+        if(name === "slug"){
             setData(name, value.toLowerCase());
         } else {
             setData(name, value);
@@ -165,15 +165,15 @@ export default function Create({ errors, old, users, postTypes }) {
                                             
                                             {/* Taxonomy Name Input Field */}
                                             <div className="mb-3">
-                                                <label htmlFor="taxonomy_name" className="form-label">
+                                                <label htmlFor="slug" className="form-label">
                                                     Taxonomy Name (Slug)<span className="text-danger">*</span>
                                                 </label>
                                                 <input
                                                     type="text"
-                                                    id="taxonomy_name"
-                                                    name="taxonomy_name"
+                                                    id="slug"
+                                                    name="slug"
                                                     className="form-control"
-                                                    value={data.taxonomy_name}
+                                                    value={data.slug}
                                                     onChange={handleChange}
                                                 />
                                                 <small className="form-text text-muted">

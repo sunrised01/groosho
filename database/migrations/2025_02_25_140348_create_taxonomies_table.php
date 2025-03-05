@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('taxonomies', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->string('taxonomy_name', 32);
+            $table->string('slug', 32);
             $table->integer('author');
             $table->string('singular_name'); 
             $table->enum('status', ['publish', 'draft', 'trash'])->default('draft'); ; 

@@ -48,7 +48,7 @@ export default function Edit({ taxonomy, errors, users, postTypes }) {
     // Initialize the form using Inertia's useForm hook with the existing taxonomy data
     const { data, setData, post, processing, reset } = useForm({
         title: taxonomy?.title || "",
-        taxonomy_name: taxonomy?.taxonomy_name || "",
+        slug: taxonomy?.slug || "",
         singular_name: taxonomy?.singular_name || "",
         description: taxonomy?.description || "",
         status: taxonomy?.status || "publish", 
@@ -90,7 +90,7 @@ export default function Edit({ taxonomy, errors, users, postTypes }) {
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
 
-        if(name === "taxonomy_name"){
+        if(name === "slug"){
             setData(name, value.toLowerCase());
         } else {
             setData(name, value);
@@ -209,15 +209,15 @@ export default function Edit({ taxonomy, errors, users, postTypes }) {
                                             
                                             {/* Taxonomy Name Input Field */}
                                             <div className="mb-3">
-                                                <label htmlFor="taxonomy_name" className="form-label">
+                                                <label htmlFor="slug" className="form-label">
                                                     Taxonomy Name (Slug)<span className="text-danger">*</span>
                                                 </label>
                                                 <input
                                                     type="text"
-                                                    id="taxonomy_name"
-                                                    name="taxonomy_name"
+                                                    id="slug"
+                                                    name="slug"
                                                     className="form-control"
-                                                    value={data.taxonomy_name}
+                                                    value={data.slug}
                                                     onChange={handleChange}
                                                 />
                                                 <small className="form-text text-muted">

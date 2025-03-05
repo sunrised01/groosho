@@ -13,7 +13,7 @@ class Taxonomies extends Model
      *  Specify the fillable attributes to allow mass assignment.
     **/
 
-    protected $fillable = ['title', 'taxonomy_name', 'author', 'singular_name', 'status', 'visibility', 'password', 'description'];
+    protected $fillable = ['title', 'slug', 'author', 'singular_name', 'status', 'visibility', 'password', 'description'];
 
      // Define the relationship
      public function postTypes()

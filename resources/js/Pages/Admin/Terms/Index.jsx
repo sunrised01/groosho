@@ -10,21 +10,65 @@ import { toast } from 'react-toastify';
 
 
 export default function Index() {
-    const { taxonomyData, parentCategories, flash, errors, terms } = usePage().props;
-    console.log(terms)
-    const formData = flash?.response?.formData;
-    const [localerrors, setLocalErrors] = useState(flash?.response?.errors || {});
+    const { taxonomyData, parentCategories, flash, errors, terms,filters } = usePage().props;
+  
+    const [successMessage, setSuccessMessage] = useState(flash?.success);
+    const [localerrors, setLocalErrors] = useState(errors);
     const [featuredImage, setFeaturedImage] = useState(null);
+    const [bulkAction, setBulkAction] = useState(''); 
+    const [searchFilter, setSearchFilter] = useState(filters.s || '');
+    const [loading, setLoading] = useState(false); 
+    const [selectedRows, setSelectedRows] = useState([]);
+    const [termIds, setTermIds] = useState([]);
+
+     // Handle search input change
+     const handleSearchChange = (e) => {
+        setSearchFilter(encodeURIComponent(e.target.value));
+    };
     
+      // Handle row selection
+    const handleRowSelection = (termId) => {
+        setSelectedRows((prevSelectedRows) => {
+            if (prevSelectedRows.includes(termId)) {
+                return prevSelectedRows.filter(id => id !== termId);
+            }
+            return [...prevSelectedRows, termId];
+        });
+        
+    };
+
+    const getAllTermIds = (terms) => {
+        return terms.flatMap(term => {
+            const ids = [term.id];
     
+            if (term.childrens && term.childrens.length > 0) {
+                const childrenIds = getAllTermIds(term.childrens);
+                return [...ids, ...childrenIds]; 
+            }
+    
+            return ids; 
+        });
+    };
+
+    const handleSelectAll = (event) => {
+        if(event.target.checked === false){
+            setSelectedRows([]);
+        }
+        else{
+            const allTermIds = getAllTermIds(terms);
+            setSelectedRows(allTermIds);
+        }
+    };
+
+
      // UseForm hook initialization
      const { data, setData, post, processing, reset } = useForm({
-        name: formData?.name || "",
-        slug: formData?.slug || "",
-        description: formData?.description || "",
-        parent_id: formData?.parent_id || 0, 
-        attachment_id: formData?.attachment_id || 0,
-        taxonomy: taxonomyData.taxonomy_name,
+        name: "",
+        slug: "",
+        description: "",
+        parent_id: "", 
+        attachment_id: "",
+        taxonomy: taxonomyData.slug,
     });
 
     const insertFeaturedImage = (selectedFile) => {
@@ -36,7 +80,7 @@ export default function Index() {
 
     const handleDeleteImage = () => {
         setFeaturedImage(null);  
-        setData('attachment_id', 0);
+        setData('attachment_id', "");
 
     };
 
@@ -58,7 +102,7 @@ export default function Index() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route('term.store', taxonomyData.taxonomy_name), {
+        post(route('term.store', taxonomyData.slug), {
             onSuccess: (response) => {
                 setFeaturedImage(null);
                 reset();
@@ -73,15 +117,31 @@ export default function Index() {
         setLocalErrors(newErrors);
     };
 
+    const removeSuccessMessage = () => {
+        setSuccessMessage(null);
+    };
+
     useEffect(() => {
-        setLocalErrors(flash?.response?.errors || {});        
-    }, [flash?.response?.errors]);
+        const allTermIds = getAllTermIds(terms);
+        setTermIds(allTermIds);
+        setLoading(false);
+        setBulkAction('');
+        setLocalErrors(errors || {});        
+        setSuccessMessage(flash?.success || "");        
+    }, [errors, flash?.success]);
 
     const renderTermsInTable = (terms, level = 0) => {
         return terms.map(term => (
             
             <React.Fragment key={term.id}>
-                <tr >
+                <tr className="tb-tr">
+                    <td>
+                        <input
+                            type="checkbox"
+                            checked={selectedRows.includes(term.id)}
+                            onChange={() => handleRowSelection(term.id)}
+                        />
+                    </td>
                     <td style={{ textAlign: 'center' }}>
                         <img 
                             src={term.attachment ? term.attachment.small_url : ''} 
@@ -94,7 +154,33 @@ export default function Index() {
                         />
                         </td>
 
-                    <td>{level > 0 ? '- '.repeat(level) : ''}{term.name}</td>
+                    <td className="position-relative">
+                        
+                        <Link href={route('term.edit',  [taxonomyData.slug,term.id])} className="text-decoration-none fw-bold">
+                        {level > 0 ? '- '.repeat(level) : ''}{term.name}
+                        </Link>
+                        <div className="action-icons ">
+                            <span className="edit  ">
+                                <Link href={route('term.edit', [taxonomyData.slug,term.id])} className="text-primary mx-2"  style={{ fontSize: '13px' }}>
+                                    Edit
+                                </Link>
+                            </span>
+                            | 
+                            <span className="trash ms-2">
+                                <Link
+                                    as="button"
+                                    method="delete"
+                                    href={route('term.delete', [taxonomyData.slug,term.id])}
+                                    className="text-danger"
+                                    style={{ fontSize: '13px' }}
+                                    
+                                >
+                                    Delete
+                                </Link>
+
+                            </span>
+                        </div>
+                    </td>
                     <td>{term.slug}</td>
                     <td>0</td>
                 </tr>
@@ -112,6 +198,17 @@ export default function Index() {
                     <h2 className="page-title mr-2">{taxonomyData.title}</h2>
                 </div>
             </div>
+            {successMessage && 
+                <div className="alert alert-primary alert-dismissible fade show">
+                    <button
+                        type="button"
+                        className="btn-close"
+                        aria-label="Close"
+                        onClick={() => removeSuccessMessage()}
+                    ></button>
+                    <p className="m-0">{successMessage}</p>
+                </div>
+            }
             {/* Display Error Messages */}
             {Object.keys(localerrors).length > 0 && (
                 <div className="row mb-4 p-3">
@@ -163,7 +260,7 @@ export default function Index() {
                                     />
                                 </div>
 
-                                {taxonomyData.taxonomy_name === 'category' && (
+                                {taxonomyData.slug === 'category' && (
                                     <div className="mb-3">
                                         <label htmlFor="parent_id" className="form-label">Parent Category</label>
                                         <select
@@ -238,11 +335,11 @@ export default function Index() {
                                 <button type="submit" className="btn btn-primary" disabled={processing}>
                                     {processing ? (
                                         <>
-                                            `Create ${taxonomyData.singular_name}` <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                            `Add New ${taxonomyData.singular_name}` <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                                         </>
                                         
                                     ) : (
-                                        `Create ${taxonomyData.singular_name}`
+                                        `Add New ${taxonomyData.singular_name}`
                                     )}
                                 </button>
                             </form>
@@ -255,13 +352,96 @@ export default function Index() {
                     <div className="card mb-4">
                         <div className="card-body">
                             <h4 className="card-title mb-4">{taxonomyData.title} List</h4>
-
+                            <div className="row mb-3">
+                                <div className="col-12 d-flex justify-content-between">
+                                    {/* Bulk Actions */}
+                                    <div className="d-inline-flex align-items-center me-3">
+                                        <select value={bulkAction} onChange={(e) => setBulkAction(e.target.value)} className="form-select me-2" style={{ width: '200px' }}>
+                                            <option value="">Bulk Actions</option>
+                                            <option value="delete">Delete</option>
+                                        </select>
+                                        
+                                        <Link 
+                                            method="post"
+                                            href={route('term.bulk.delete', { taxonomy: taxonomyData.slug, ids: selectedRows.join(',') })}
+                                            className="btn btn-primary" 
+                                            disabled={bulkAction === '' || loading === true}
+                                            onClick={() => setLoading(true)}
+                                        >
+                                            {loading ? (
+                                                <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                            ) : (
+                                                'Apply'
+                                            )}
+                                        </Link>
+                                        
+                                    </div>
+                                    {/* Search Field */}
+                                    <div className="d-flex">
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            placeholder="Search by Name"
+                                            defaultValue={searchFilter}
+                                            onChange={handleSearchChange}
+                                        />
+                                        <Link
+                                            as="button"
+                                            href={route('term.index', {
+                                                taxonomy: taxonomyData.slug,
+                                                ...filters,  
+                                                s: searchFilter 
+                                            })}
+                                            className="btn btn-primary ms-2"
+                                        >
+                                            Search
+                                        </Link>
+                                    </div>
+                                </div>
+                            </div>            
                             {/* Table */}
-                            <table className="table">
+                            <table className="table table-striped">
                                 <thead>
                                     <tr>
+                                        <th style={{ width: '15px' }}>
+                                            <input
+                                                type="checkbox"
+                                                onChange={handleSelectAll}
+                                                checked={selectedRows.length > 0 && selectedRows.length === termIds.length}
+                                                />
+                                        </th>
                                         <th className="w-10">Icon</th>
-                                        <th className="w-40">Name</th>
+                                        <th className="w-40">
+                                            <div className="d-flex align-items-center">
+                                                <span className="me-3">Name</span>
+
+                                                <Link
+                                                    
+                                                    href={route('term.index', {
+                                                        taxonomy: taxonomyData.slug,
+                                                        ...filters,
+                                                        order_by: 'asc', 
+                                                        order_column: 'name'
+                                                    })}
+                                                    className={`btn btn-link p-0 ${filters.order_column === 'name' && filters.order_by === 'asc' ? 'active' : ''}`}
+                                                >
+                                                    <FaArrowUp color={filters.order_column === 'name' && filters.order_by === 'asc' ? 'black' : 'gray'} />
+                                                </Link>
+
+                                                <Link
+                                                    
+                                                    href={route('term.index', {
+                                                        taxonomy: taxonomyData.slug,
+                                                        ...filters,
+                                                        order_by: 'desc', 
+                                                        order_column: 'name'
+                                                    })}
+                                                    className={`btn btn-link p-0 ${filters.order_column === 'name' && filters.order_by === 'desc' ? 'active' : ''}`}
+                                                >
+                                                    <FaArrowDown color={filters.order_column === 'name' && filters.order_by === 'desc' ? 'black' : 'gray'} />
+                                                </Link>
+                                            </div>
+                                        </th>
                                         <th className="w-30">Slug</th>
                                         <th className="w-20">Count</th>
                                     </tr>

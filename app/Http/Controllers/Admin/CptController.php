@@ -48,7 +48,7 @@ class CptController extends Controller
      */
     public function fetch(Request $request)
     {
-        $customPostTypes = PostType::select('id', 'title', 'cpt_name')
+        $customPostTypes = PostType::select('id', 'title', 'slug')
             ->where('status', 'publish')
             ->with('taxonomies') 
             ->get(); 

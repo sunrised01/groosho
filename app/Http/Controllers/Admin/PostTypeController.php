@@ -30,15 +30,14 @@ class PostTypeController extends Controller
         // Build query with filters
         $query = PostType::query();
 
-        // Search filter: if search term exists, apply filtering based on title and cpt_name
+        // Search filter: if search term exists, apply filtering based on title and slug
         if (!empty($search)) {
             $words = explode(' ', $search);  // Split search term into words
             
             // Apply the search filter to each word
             foreach ($words as $word) {
                 $query->orWhere(function ($q) use ($word) {
-                    $q->where('title', 'like', "%{$word}%")
-                      ->orWhere('cpt_name', 'like', "%{$word}%");
+                    $q->where('title', 'like', "%{$word}%");
                 });
             }
         }
@@ -137,11 +136,11 @@ class PostTypeController extends Controller
         try {
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
-                'cpt_name' => [
+                'slug' => [
                     'required',
                     'string',
                     'regex:/^[a-z0-9-_]{1,20}$/',
-                    'unique:post_types,cpt_name',
+                    'unique:post_types,slug',
                 ],
                 'singular_name' => 'required|string|max:255',
                 'description' => 'nullable|string',
@@ -150,13 +149,13 @@ class PostTypeController extends Controller
                 'supports' => 'nullable|array',
                 'author_id' => 'required|exists:users,id',
             ], [
-                'cpt_name.unique' => 'The "'.$request->cpt_name.'" CPT Name(Slug) is already used in the system, Try with a different one.',
+                'slug.unique' => 'The "'.$request->slug.'" CPT Name(Slug) is already used in the system, Try with a different one.',
             ]);
 
             // Create the new post type with the validated data
             $postType = PostType::create([
                 'title' => $request->title,
-                'cpt_name' => $request->cpt_name,
+                'slug' => $request->slug,
                 'author' => $request->author_id,
                 'singular_name' => $request->singular_name,
                 'supports' => implode(',', $request->supports),
@@ -231,11 +230,11 @@ class PostTypeController extends Controller
             // Validate the incoming request data
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
-                'cpt_name' => [
+                'slug' => [
                     'required',
                     'string',
                     'regex:/^[a-z0-9-_]{1,20}$/',
-                    'unique:post_types,cpt_name,'. $id,
+                    'unique:post_types,slug,'. $id,
                 ],
                 'singular_name' => 'required|string|max:255',
                 'description' => 'nullable|string',
@@ -244,13 +243,13 @@ class PostTypeController extends Controller
                 'supports' => 'nullable|array',
                 'author_id' => 'required|exists:users,id',
             ], [
-                'cpt_name.unique' => 'The "'.$request->cpt_name.'" CPT Name(Slug) is already used in the system, Try with a different one.',
+                'slug.unique' => 'The "'.$request->slug.'" CPT Name(Slug) is already used in the system, Try with a different one.',
             ]);
             
             // Update the post type in the database
             $postType->update([
                 'title' => $request->title,
-                'cpt_name' => $request->cpt_name,
+                'slug' => $request->slug,
                 'author' => $request->author_id,
                 'singular_name' => $request->singular_name,
                 'supports' => implode(',', $request->supports),

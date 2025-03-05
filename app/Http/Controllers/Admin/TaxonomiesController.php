@@ -32,15 +32,14 @@ class TaxonomiesController extends Controller
         // Build query with filters
         $query = Taxonomies::query();
 
-        // Search filter: if search term exists, apply filtering based on title and taxonomy_name
+        // Search filter: if search term exists, apply filtering based on title and slug
         if (!empty($search)) {
             $words = explode(' ', $search);  // Split search term into words
             
             // Apply the search filter to each word
             foreach ($words as $word) {
                 $query->orWhere(function ($q) use ($word) {
-                    $q->where('title', 'like', "%{$word}%")
-                      ->orWhere('taxonomy_name', 'like', "%{$word}%");
+                    $q->where('title', 'like', "%{$word}%");
                 });
             }
         }
@@ -118,7 +117,7 @@ class TaxonomiesController extends Controller
     {
         // Fetch users for the author field in the create form
         $users = User::select('id', 'name')->get();
-        $postTypes = PostType::select('id', 'title', 'cpt_name')->where('status', 'publish')->get();
+        $postTypes = PostType::select('id', 'title', 'slug')->where('status', 'publish')->get();
         
         // Return the create view with users to select from
         return Inertia::render('Admin/Taxonomies/Create', [
@@ -137,16 +136,16 @@ class TaxonomiesController extends Controller
     {
         // Fetch users for the author selection field
         $users = User::select('id', 'name')->get();
-        $postTypes = PostType::select('id', 'title', 'cpt_name')->where('status', 'publish')->get();
+        $postTypes = PostType::select('id', 'title', 'slug')->where('status', 'publish')->get();
 
         try {
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
-                'taxonomy_name' => [
+                'slug' => [
                     'required',
                     'string',
                     'regex:/^[a-z0-9-_]{1,20}$/',
-                    'unique:taxonomies,taxonomy_name',
+                    'unique:taxonomies,slug',
                 ],
                 'singular_name' => 'required|string|max:255',
                 'description' => 'nullable|string',
@@ -154,13 +153,13 @@ class TaxonomiesController extends Controller
                 'visibility' => 'required|in:public,private,protected',
                 'author_id' => 'required|exists:users,id',
             ], [
-                'taxonomy_name.unique' => 'The "'.$request->taxonomy_name.'" Taxonomy Name(Slug) is already used in the system, Try with a different one.',
+                'slug.unique' => 'The "'.$request->slug.'" Taxonomy Name(Slug) is already used in the system, Try with a different one.',
             ]);
 
             // Create the new taxonomy with the validated data
             $taxonomy = Taxonomies::create([
                 'title' => $request->title,
-                'taxonomy_name' => $request->taxonomy_name,
+                'slug' => $request->slug,
                 'author' => $request->author_id,
                 'singular_name' => $request->singular_name,
                 'status' => $request->status,
@@ -213,7 +212,7 @@ class TaxonomiesController extends Controller
         // Fetch users and the taxonomy to be edited
         $users = User::select('id', 'name')->get();
         $taxonomy = Taxonomies::with('postTypes')->findOrFail($id);
-        $postTypes = PostType::select('id', 'title', 'cpt_name')->where('status', 'publish')->get();
+        $postTypes = PostType::select('id', 'title', 'slug')->where('status', 'publish')->get();
                 
         // Return the edit form view with the taxonomy data
         return Inertia::render('Admin/Taxonomies/Edit', [
@@ -234,18 +233,18 @@ class TaxonomiesController extends Controller
     {
         $taxonomy = Taxonomies::with('postTypes')->findOrFail($id);
         $users = User::select('id', 'name')->get();
-        $postTypes = PostType::select('id', 'title', 'cpt_name')->where('status', 'publish')->get();
+        $postTypes = PostType::select('id', 'title', 'slug')->where('status', 'publish')->get();
 
 
         try {
             // Validate the incoming request data
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
-                'taxonomy_name' => [
+                'slug' => [
                     'required',
                     'string',
                     'regex:/^[a-z0-9-_]{1,20}$/',
-                    'unique:taxonomies,taxonomy_name,'. $id,
+                    'unique:taxonomies,slug,'. $id,
                 ],
                 'singular_name' => 'required|string|max:255',
                 'description' => 'nullable|string',
@@ -253,13 +252,13 @@ class TaxonomiesController extends Controller
                 'visibility' => 'required|in:public,private,protected',
                 'author_id' => 'required|exists:users,id',
             ], [
-                'taxonomy_name.unique' => 'The "'.$request->taxonomy_name.'" Taxonomy Name(Slug) is already used in the system, Try with a different one.',
+                'slug.unique' => 'The "'.$request->slug.'" Taxonomy Name(Slug) is already used in the system, Try with a different one.',
             ]);
             
             // Update the taxonomy in the database
             $taxonomy->update([
                 'title' => $request->title,
-                'taxonomy_name' => $request->taxonomy_name,
+                'slug' => $request->slug,
                 'author' => $request->author_id,
                 'singular_name' => $request->singular_name,
                 'status' => $request->status,
@@ -269,7 +268,8 @@ class TaxonomiesController extends Controller
             ]);
 
             if (!empty($request->post_type)) {
-                $taxonomy->postTypes()->attach($request->post_type);
+                $taxonomy->postTypes()->syncWithoutDetaching([$request->post_type]);
+
             } 
             else{
                 $taxonomy->postTypes()->detach($request->post_type);

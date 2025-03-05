@@ -9,7 +9,7 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\App;
 use App\Models\Terms;
-
+use Illuminate\Support\Str;
 
 class TermsController extends Controller
 {
@@ -21,12 +21,25 @@ class TermsController extends Controller
      */
     public function index(Request $request, $taxonomy)
     {
-        $taxonomyData = Taxonomies::where('taxonomy_name', $taxonomy)->first();
+        // echo get_config('placeholder_image');
+
+        $search = urldecode($request->input('s', ''));
+        $orderBy = $request->input('order_by', 'desc');
+        $orderColumn = $request->input('order_column', 'id');
+
+        $taxonomyData = Taxonomies::where('slug', $taxonomy)->first();
         $parentCategories = Terms::select('id', 'name')->get();
 
-        
-        $terms = Terms::where('parent_id', 0)
-            ->with('childrens')  
+        $query = Terms::where('parent_id', null)
+            ->where('taxonomy', $taxonomy);
+
+        if ($search) {
+            $query->where('name', 'like', '%' . $search . '%');
+        }
+
+        $query->orderBy($orderColumn, $orderBy);
+
+        $terms = $query->with('childrens')  
             ->with('attachmentData')  
             ->get()
             ->map(function ($term) {
@@ -47,13 +60,14 @@ class TermsController extends Controller
 
                 return $term;
             });
-        
+
         return Inertia::render('Admin/Terms/Index', [
             'taxonomyData' => $taxonomyData,
             'parentCategories' => $parentCategories,
             'terms' => $terms,
-           
+            'filters' => $request->only(['s', 'order_by']),
         ]);
+
     }
 
     
@@ -90,7 +104,7 @@ class TermsController extends Controller
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'slug' => [
-                    'required',
+                    'nullable',
                     'string',
                     'regex:/^[a-z0-9-_]{1,20}$/',
                     'unique:terms,slug',
@@ -99,28 +113,102 @@ class TermsController extends Controller
             ], [
                 'slug.unique' => 'The "'.$request->slug.'" Slug is already used in the system, Try with a different one.',
             ]);
-
-            // Create the new post type with the validated data
+            
+            
+            $slug = $request->slug ?: Str::slug($request->name);
+            
+            $originalSlug = $slug; 
+            $counter = 1;
+            while (Terms::where('slug', $slug)->exists()) {
+                $slug = $originalSlug . '-' . $counter;
+                $counter++;
+            }
+            
             $term = Terms::create([
                 'name' => $request->name,
-                'slug' => $request->slug,
+                'slug' => $slug,
                 'parent_id' => $request->parent_id,
                 'attachment_id' => $request->attachment_id,
+                'taxonomy' => $request->taxonomy,
                 'description' => $request->description,
             ]);
+            
             
             return redirect()->route('term.index', $request->taxonomy)->with('success', $request->taxonomy.' created successfully!');
             
         } catch (\Illuminate\Validation\ValidationException $e) {
-            
-            $responseData = [
-                'errors' => $e->errors(), 
-                'formData' => $request->all()
-            ];
-
             return redirect()->route('term.index', ['taxonomy' => $request->taxonomy])
-                 ->with('response', $responseData);
+            ->withErrors($e->errors());
+        } catch (\Exception $e) {
+            if (App::environment('production')) {
+                $error = 'An error occurred while creating the '.$request->taxonomy.'. Please try again.';
+                Log::error('Error updating post type: ' . $e->getMessage());
+            } else {
+                $error = 'Error: ' . $e->getMessage();
+            }
+           
+            return redirect()->route('term.index', ['taxonomy' => $request->taxonomy])
+                 ->withErrors(['general' => $error]);
+                 
+        }
+    }
 
+    public function edit($taxonomy, $term_id)
+    {
+      
+        $taxonomyData = Taxonomies::where('slug', $taxonomy)->first();
+        $parentCategories = Terms::select('id', 'name')->get();
+
+        $term = Terms::where('id', $term_id)
+            ->with('attachmentData')  
+            ->first();
+
+        if ($term && $term->attachmentData) {
+            $term->attachment = [
+                'small_url' => asset('storage/' . $term->attachmentData->small_path),   
+                'thumb_url' => asset('storage/' . $term->attachmentData->thumb_path),   
+                'original_url' => asset('storage/' . $term->attachmentData->path),   
+            ]; 
+            unset($term->attachmentData);
+        }
+        
+        return Inertia::render('Admin/Terms/Edit', [
+            'taxonomyData' => $taxonomyData,
+            'parentCategories' => $parentCategories,
+            'term' => $term,
+        ]);
+    }
+
+    public function update(Request $request, $taxonomy, $term_id){
+        try {
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'slug' => [
+                    'required',
+                    'string',
+                    'regex:/^[a-z0-9-_]{1,20}$/',
+                    'unique:terms,slug,'. $term_id,
+                ],
+                'description' => 'nullable|string',
+            ], [
+                'slug.unique' => 'The "'.$request->slug.'" Slug is already used in the system, Try with a different one.',
+            ]);
+
+            $term = Terms::findOrFail($term_id);
+
+            $term->update([
+                'name' => $request->name,
+                'slug' => $request->slug,
+                'parent_id' => $request->parent_id,
+                'attachment_id' => $request->attachment_id,
+                'taxonomy' => $request->taxonomy,
+                'description' => $request->description,
+            ]);
+            
+            return redirect()->route('term.index', $request->taxonomy)->with('success', $request->taxonomy.' updated successfully!');
+            
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()->withErrors($e->errors());
         } catch (\Exception $e) {
             if (App::environment('production')) {
                 $error = 'An error occurred while creating the '.$request->taxonomy.'. Please try again.';
@@ -129,13 +217,75 @@ class TermsController extends Controller
                 $error = 'Error: ' . $e->getMessage();
             }
 
-            $responseData = [
-                'errors' => ['general' => $error], 
-                'formData' => $request->all()
-            ];
+            return redirect()->back()->withErrors(['general' => $error]);
 
-            return redirect()->route('term.index', ['taxonomy' => $request->taxonomy])
-                 ->with('response', $responseData);
         }
-   }
+    }
+
+
+    public function destroy(Request $request, $taxonomy, $term_id)
+    {
+        try {
+            $term = Terms::findOrFail($term_id);
+            $children = $term->childrens; 
+            if ($children->isNotEmpty()) {
+                foreach ($children as $child) {
+                    $child->parent_id = null; 
+                    $child->save();
+                }
+            }
+
+            $term->delete();
+
+            return redirect()->back()->with('success', $taxonomy.' deleted successfully!');
+        }
+        catch (\Exception $e) {
+            if (App::environment('production')) {
+                $error = 'An error occurred while deleting the record. Please try again.';
+                Log::error('Error: ' . $e->getMessage());
+            } else {
+                $error = 'Error: ' . $e->getMessage();
+            }
+
+            return redirect()->back()->withErrors(['general' => $error],);
+        }
+    }
+
+    public function bulkDelete(Request $request, $taxonomy)
+    {
+        try {
+           
+            if ($request->query('ids') == null) {
+                return redirect()->back()->withErrors(['general' => 'No IDs selected.'],);
+            }
+
+            $ids = explode(',', $request->query('ids'));
+            $terms = Terms::whereIn('id', $ids)->get();
+
+            foreach ($terms as $term) {
+                $children = $term->childrens; 
+                if ($children->isNotEmpty()) {
+                    foreach ($children as $child) {
+                        $child->parent_id = null; 
+                        $child->save();
+                    }
+                }
+
+                $term->delete();
+            }
+
+            return redirect()->back()->with('success', $taxonomy.' deleted successfully!');
+        }
+        catch (\Exception $e) {
+            if (App::environment('production')) {
+                $error = 'An error occurred while deleting the record. Please try again.';
+                Log::error('Error: ' . $e->getMessage());
+            } else {
+                $error = 'Error: ' . $e->getMessage();
+            }
+
+            return redirect()->back()->withErrors(['general' => $error],);
+        }
+    }
+
 }

@@ -138,7 +138,7 @@ export default function Index() {
                         <input
                             type="text"
                             className="form-control"
-                            placeholder="Search by Title or Taxonomy Name"
+                            placeholder="Search by Title"
                             defaultValue={searchFilter}
                             onChange={handleSearchChange}
                         />
@@ -316,58 +316,12 @@ export default function Index() {
 
                                         <th>
                                             <div className="d-flex align-items-center">
-                                                <span className="me-3">Taxonomy(Slug)</span>
-                                                <Link
-                                                    as="button"
-                                                    href={route('taxonomies.index', {
-                                                        ...filters,
-                                                        order_by: 'asc', 
-                                                        order_column: 'taxonomy_name'
-                                                    })}
-                                                    className={`btn btn-link p-0 ${filters.order_column === 'taxonomy_name' && filters.order_by === 'asc' ? 'active' : ''}`}
-                                                >
-                                                    <FaArrowUp color={filters.order_column === 'taxonomy_name' && filters.order_by === 'asc' ? 'black' : 'gray'} />
-                                                </Link>
-
-                                                <Link
-                                                    as="button"
-                                                    href={route('taxonomies.index', {
-                                                        ...filters,
-                                                        order_by: 'desc', 
-                                                        order_column: 'taxonomy_name'  
-                                                    })}
-                                                    className={`btn btn-link p-0 ${filters.order_column === 'taxonomy_name' && filters.order_by === 'desc' ? 'active' : ''}`}
-                                                >
-                                                    <FaArrowDown color={filters.order_column === 'taxonomy_name' && filters.order_by === 'desc' ? 'black' : 'gray'} />
-                                                </Link>
+                                                <span className="me-3">Slug</span>
                                             </div>
                                         </th>
                                         <th>
                                             <div className="d-flex align-items-center">
                                                 <span className="me-3">Singular Name</span>
-                                                <Link
-                                                    as="button"
-                                                    href={route('taxonomies.index', {
-                                                        ...filters,
-                                                        order_by: 'asc', 
-                                                        order_column: 'singular_name'
-                                                    })}
-                                                    className={`btn btn-link p-0 ${filters.order_column === 'singular_name' && filters.order_by === 'asc' ? 'active' : ''}`}
-                                                >
-                                                    <FaArrowUp color={filters.order_column === 'singular_name' && filters.order_by === 'asc' ? 'black' : 'gray'} />
-                                                </Link>
-
-                                                <Link
-                                                     as="button"
-                                                    href={route('taxonomies.index', {
-                                                        ...filters,
-                                                        order_by: 'desc', 
-                                                        order_column: 'singular_name'  
-                                                    })}
-                                                    className={`btn btn-link p-0 ${filters.order_column === 'singular_name' && filters.order_by === 'desc' ? 'active' : ''}`}
-                                                >
-                                                    <FaArrowDown color={filters.order_column === 'singular_name' && filters.order_by === 'desc' ? 'black' : 'gray'} />
-                                                </Link>
                                             </div>
                                         </th>
                                         <th>
@@ -381,7 +335,7 @@ export default function Index() {
                                 </thead>
                                 <tbody>
                                     {taxonomies.data.map((taxonomy) => (
-                                        <tr key={taxonomy.id} className="position-relative">
+                                        <tr key={taxonomy.id} className="tb-tr ">
                                             <td>
                                                 <input
                                                     type="checkbox"
@@ -389,7 +343,7 @@ export default function Index() {
                                                     onChange={() => handleRowSelection(taxonomy.id)}
                                                 />
                                             </td>
-                                            <td >
+                                            <td className="position-relative">
                                                 {taxonomy.status === 'trash' ?
                                                     <div className="text-black fw-bold">
                                                     {taxonomy.title} {taxonomy.status === 'draft' &&
@@ -478,12 +432,12 @@ export default function Index() {
                                                 
                                                 </div>
                                             </td>
-                                            <td>{taxonomy.taxonomy_name}</td>
+                                            <td>{taxonomy.slug}</td>
                                             <td>{taxonomy.singular_name}</td>
                                             
                                             <td>
                                                 {Array.isArray(taxonomy.post_types) && taxonomy.post_types.length > 0
-                                                    ? taxonomy.post_types.map(post_type => `${post_type.title} (${post_type.cpt_name})`).join(', ')
+                                                    ? taxonomy.post_types.map(post_type => `${post_type.slug}`).join(', ')
                                                     : '-'}
                                             </td>
 

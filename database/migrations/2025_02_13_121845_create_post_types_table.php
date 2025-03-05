@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('post_types', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->string('cpt_name', 20);
+            $table->string('slug', 20);
             $table->integer('author');
             $table->string('singular_name'); 
             $table->text('supports'); 

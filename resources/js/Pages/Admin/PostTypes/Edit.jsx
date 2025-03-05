@@ -24,7 +24,7 @@ export default function Edit({ postType, errors, users }) {
 
     const { data, setData, post, processing, reset } = useForm({
         title: postType?.title || "",
-        cpt_name: postType?.cpt_name || "",
+        slug: postType?.slug || "",
         singular_name: postType?.singular_name || "",
         description: postType?.description || "",
         status: postType?.status || "publish", 
@@ -77,7 +77,7 @@ export default function Edit({ postType, errors, users }) {
                 return { ...prevData, supports: newSupports }; 
             });
         }
-        else if(name === "cpt_name"){
+        else if(name === "slug"){
             setData(name, value.toLowerCase());
         } else {
             setData(name, value);
@@ -196,15 +196,15 @@ export default function Edit({ postType, errors, users }) {
                                             
                                             {/* CPT Name Input Field */}
                                             <div className="mb-3">
-                                                <label htmlFor="cpt_name" className="form-label">
+                                                <label htmlFor="slug" className="form-label">
                                                     CPT Name (Slug)<span className="text-danger">*</span>
                                                 </label>
                                                 <input
                                                     type="text"
-                                                    id="cpt_name"
-                                                    name="cpt_name"
+                                                    id="slug"
+                                                    name="slug"
                                                     className="form-control"
-                                                    value={data.cpt_name}
+                                                    value={data.slug}
                                                     onChange={handleChange}
                                                 />
                                                 <small className="form-text text-muted">

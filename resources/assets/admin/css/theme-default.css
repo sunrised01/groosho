@@ -958,12 +958,11 @@ html:not(.layout-menu-collapsed) .bg-menu-theme .menu-inner .menu-item .menu-lin
   }
 }
 
-tr.position-relative.position-relative {
-	position: relative !important;
+tr.tb-tr {
 	height: 58px !important;
 }
 
-tr.position-relative:hover .action-icons {
+tr.tb-tr:hover .action-icons {
   display: block;
 }
 td {
@@ -975,7 +974,7 @@ td {
 	width: auto;
 	position: absolute;
 	top: 34px;
-	left: 68px;
+	left: 13px;
 	font-size: 15px;
 }
 
