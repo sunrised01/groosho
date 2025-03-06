@@ -21,6 +21,9 @@ return new class extends Migration
             $table->string('post_status', 20)->default('publish');
             $table->unsignedBigInteger('post_parent')->default(0);
             $table->string('post_type', 20)->default('post');
+            $table->enum('status', ['publish', 'draft', 'trash'])->default('draft'); ; 
+            $table->enum('visibility', ['public', 'private', 'protected'])->default('public'); 
+            $table->string('password')->nullable();
             $table->timestamps();
         });
     }

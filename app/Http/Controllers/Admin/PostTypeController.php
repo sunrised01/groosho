@@ -11,30 +11,28 @@ use Illuminate\Support\Facades\App;
 
 class PostTypeController extends Controller
 {
-    /**
-     * Display a listing of the custom post types with search and pagination.
+     /**
+     * Display a listing of the post types with search and pagination.
      *
+     * This method retrieves all post type, applies various filters like search, 
+     * status, date range, and sorting. It then returns the data along with pagination 
+     * and additional counts for different post type statuses.
+     * 
      * @param \Illuminate\Http\Request $request
      * @return \Inertia\Response
      */
     public function index(Request $request)
     {
-        // Retrieve filters and parameters from the request
-        $search = urldecode($request->input('s', ''));  // Search query (decoded)
-        $perPage = $request->input('per_page', 10);     // Items per page
-        $orderBy = $request->input('order_by', 'asc');  // Order by direction (ascending or descending)
-        $orderColumn = $request->input('order_column', 'title');  // Column to order by (default is title)
-        $dateFilter = $request->input('date_filter', 'all'); // Date filter (default is all)
-        $status = $request->input('status', '');  // Status filter
+        $search = urldecode($request->input('s', ''));  
+        $perPage = $request->input('per_page', 10); 
+        $orderBy = $request->input('order_by', 'asc');
+        $orderColumn = $request->input('order_column', 'title');
+        $dateFilter = $request->input('date_filter', 'all');
+        $status = $request->input('status', '');
 
-        // Build query with filters
         $query = PostType::query();
-
-        // Search filter: if search term exists, apply filtering based on title and slug
         if (!empty($search)) {
-            $words = explode(' ', $search);  // Split search term into words
-            
-            // Apply the search filter to each word
+            $words = explode(' ', $search);
             foreach ($words as $word) {
                 $query->orWhere(function ($q) use ($word) {
                     $q->where('title', 'like', "%{$word}%");
@@ -42,7 +40,6 @@ class PostTypeController extends Controller
             }
         }
 
-         // Status filter: apply the status filter to the query
         if (!empty($status)) {
             $query->where('status', $status); 
         }
@@ -50,24 +47,17 @@ class PostTypeController extends Controller
             $query->where('status', '!=', 'trash'); 
         }
         
-        // Date filter: filter by the selected month if the date filter is not 'all'
         if ($dateFilter !== 'all') {
-            list($year, $month) = explode('-', $dateFilter);  // Extract year and month from date filter
-            
-            // Set the start and end dates for the selected month
+            list($year, $month) = explode('-', $dateFilter);
             $startDate = \Carbon\Carbon::create($year, $month, 1)->startOfMonth();
             $endDate = \Carbon\Carbon::create($year, $month, 1)->endOfMonth();
             
-            $query->whereBetween('created_at', [$startDate, $endDate]);  // Apply date filter
+            $query->whereBetween('created_at', [$startDate, $endDate]);
         }
 
-        // Apply ordering (based on the specified column and direction)
         $query->orderBy($orderColumn, $orderBy);
-
-        // Paginate the results
         $postTypes = $query->with('taxonomies')->paginate($perPage);
 
-        // Get unique months from the created_at field for filtering by date
         $months = PostType::selectRaw('YEAR(created_at) as year, MONTH(created_at) as month')
         ->groupBy('year', 'month')
         ->orderByDesc('year')
@@ -75,20 +65,14 @@ class PostTypeController extends Controller
         ->get()
         ->map(function ($item) {
             $monthName = \Carbon\Carbon::create($item->year, $item->month, 1)->format('M Y');
-            return ['value' => "{$item->year}-{$item->month}", 'label' => $monthName];  // Map to year-month labels
+            return ['value' => "{$item->year}-{$item->month}", 'label' => $monthName]; 
         });
 
-        /// Count of publish post types
         $totalCount = PostType::where('status', '!=', 'trash')->count();
-        /// Count of publish post types
         $publishCount = PostType::where('status', 'publish')->count();
-        // Count of trash post types
         $trashCount = PostType::where('status', 'trash')->count();
-        // Count of draft post types
         $draftCount = PostType::where('status', 'draft')->count();
 
-        
-        // Return the view with data to display the custom post types
         return Inertia::render('Admin/PostTypes/Index', [
             'postTypes' => $postTypes,
             'pagination' => [
@@ -107,30 +91,33 @@ class PostTypeController extends Controller
     }
 
     /**
-     * Show the form for creating a new custom post type.
+     * Show the form for creating a new post type.
      *
+     * This method fetches users for the creation form and 
+     * returns the view to create a new post type.
+     * 
      * @return \Inertia\Response
      */
     public function create()
     {
-        // Fetch users for the author field in the create form
         $users = User::select('id', 'name')->get();
-        
-        // Return the create view with users to select from
         return Inertia::render('Admin/PostTypes/Create', [
             'users' => $users
         ]);
     }
 
     /**
-     * Store a newly created custom post type in the database.
+     * Store a newly created post type in the database.
+     *
+     * This method validates the input, creates a new post type, It handles errors and redirects 
+     * to the post type edit page upon successful creation.
      *
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\RedirectResponse
      */
+
     public function store(Request $request)
     {
-        // Fetch users for the author selection field
         $users = User::select('id', 'name')->get();
 
         try {
@@ -152,7 +139,6 @@ class PostTypeController extends Controller
                 'slug.unique' => 'The "'.$request->slug.'" CPT Name(Slug) is already used in the system, Try with a different one.',
             ]);
 
-            // Create the new post type with the validated data
             $postType = PostType::create([
                 'title' => $request->title,
                 'slug' => $request->slug,
@@ -165,18 +151,15 @@ class PostTypeController extends Controller
                 'description' => $request->description,
             ]);
             
-            // Redirect to edit the newly created post type with a success message
             return redirect()->route('posttype.edit', $postType->id)->with('success', 'Post type created successfully!');
             
         } catch (\Illuminate\Validation\ValidationException $e) {
-            // If validation fails, return back to the create form with errors
             return Inertia::render('Admin/PostTypes/Create', [
                 'users' => $users,
                 'errors' => $e->errors(),
                 'formData' => $request->all(),
             ]);
         } catch (\Exception $e) {
-            // Log the error and return back to the form with a general error
             if (App::environment('production')) {
                 $error = 'An error occurred while creating the post type. Please try again.';
                 Log::error('Error updating post type: ' . $e->getMessage());
@@ -192,21 +175,28 @@ class PostTypeController extends Controller
         }
     }
 
-    /**
-     * Show the form for editing the specified custom post type.
+   /**
+     * Show the form for editing the specified post type.
+     *
+     * This method retrieves the post type data and the necessary options 
+     * (users) for editing and returns the view to edit the post type.
      *
      * @param  int  $id
      * @return \Inertia\Response
      */
     public function edit($id)
     {
-        // Fetch users and the post type to be edited
+        if (!is_numeric($id)) {
+            abort(404, 'Invalid ID');
+        }
+
         $users = User::select('id', 'name')->get();
         $postType = PostType::findOrFail($id);
-        
+        if (!$postType) {
+            abort(404, 'Post Type not found');
+        }
         $postType->supports = explode(',', $postType->supports);
         
-        // Return the edit form view with the post type data
         return Inertia::render('Admin/PostTypes/Edit', [
             'postType' => $postType,
             'users' => $users, 
@@ -214,7 +204,11 @@ class PostTypeController extends Controller
     }
 
     /**
-     * Update the specified custom post type in the database.
+     * Update the specified post type in the database.
+     *
+     * This method validates the update request, updates the post type 
+     * with new values. 
+     * It handles errors and redirects to the post type edit page upon successful update.
      *
      * @param \Illuminate\Http\Request $request
      * @param  int  $id
@@ -222,12 +216,10 @@ class PostTypeController extends Controller
      */
     public function update(Request $request, $id)
     {
-        // Fetch the post type to be updated
         $postType = PostType::findOrFail($id);
         $users = User::select('id', 'name')->get();
 
         try {
-            // Validate the incoming request data
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
                 'slug' => [
@@ -246,7 +238,6 @@ class PostTypeController extends Controller
                 'slug.unique' => 'The "'.$request->slug.'" CPT Name(Slug) is already used in the system, Try with a different one.',
             ]);
             
-            // Update the post type in the database
             $postType->update([
                 'title' => $request->title,
                 'slug' => $request->slug,
@@ -259,11 +250,9 @@ class PostTypeController extends Controller
                 'description' => $request->description,
             ]);
 
-            // Redirect to the edit page with success message
-            return redirect()->route('posttype.edit', $id)->with('success', 'Custom post type updated successfully.');
+            return redirect()->route('posttype.edit', $id)->with('success', 'Post type updated successfully.');
             
         } catch (\Illuminate\Validation\ValidationException $e) {
-            // If validation fails, return back to the edit form with errors
             return Inertia::render('Admin/PostTypes/Edit', [
                 'errors' => $e->errors(),
                 'formData' => $request->all(),
@@ -271,8 +260,6 @@ class PostTypeController extends Controller
                 'users' => $users,
             ]);
         } catch (\Exception $e) {
-            // Log the error and return back to the form with a general error
-
             if (App::environment('production')) {
                 $error = 'An error occurred while updating the post type. Please try again.';
                 Log::error('Error updating post type: ' . $e->getMessage());
@@ -292,21 +279,24 @@ class PostTypeController extends Controller
     /**
      * Move the specified post type to the trash.
      *
+     * This method updates the status of a post type to 'trash' or 
+     * deletes it permanently based on the provided status and 
+     * then redirects the user accordingly with a success message.
+     *
      * @param \Illuminate\Http\Request $request
      * @param  int  $id
+     * @param  string $status
      * @return \Illuminate\Http\RedirectResponse
      */
     public function updateStatus(Request $request, $id, $status)
     {
         try {
-            // Validate that the status is one of the allowed values
             $validStatuses = ['publish', 'draft', 'trash', 'delete'];
             
             if (!in_array($status, $validStatuses)) {
                 return redirect()->back()->with('error', 'Invalid status provided.');
             }
             
-            // Find the post type by ID and update its status to 'trash'
             $postType = PostType::findOrFail($id);
             $referer = $request->headers->get('referer');
 
@@ -327,18 +317,14 @@ class PostTypeController extends Controller
                 $message = 'Post type has been restored from trash';
             }  
             
-            // Redirect based on the referer URL (Edit or Index page)
             if (strpos($referer, route('posttype.edit', $postType->id)) !== false) {
-                // Request came from the Edit page, redirect to the index page
                 return redirect()->route('posttype.index')->with('success', $message);
             } else {
-                // Request came from the Index page or elsewhere, redirect back
                 return back()->with('success', $message);
             }
 
 
         } catch (\Exception $e) {
-            // Log the error and handle non-production environments with detailed error message
             if (App::environment('production')) {
                 $error = 'An error occurred while moving the post to trash. Please try again.';
                 Log::error('PostType Error: ' . $e->getMessage());
@@ -349,18 +335,26 @@ class PostTypeController extends Controller
         }
     }
 
+    /**
+     * Perform bulk actions on selected post types.
+     *
+     * This method handles bulk actions like deleting or moving post types to trash 
+     * by taking a list of selected IDs and performing the necessary action. 
+     * It then redirects back with a success message.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param  string $status
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function bulkAction(Request $request, $status)
     {
         try {
-            // Validate that the 'ids' array is not empty
             if ($request->query('ids') == null) {
                 return redirect()->back()->with('error', 'No IDs selected.');
             }
-            // Get the 'ids' from the query string
             $ids = explode(',', $request->query('ids')); 
             
             
-            // Check for the status and perform actions accordingly
             if ($status == 'delete_permanently') {
                 PostType::whereIn('id', $ids)->delete();
                 $message = 'Selected post type successfully deleted';
@@ -373,11 +367,9 @@ class PostTypeController extends Controller
                 $message = 'Selected post type has been restored from trash';
             }
 
-            // Redirect back after successful action
             return redirect()->back()->with('success', $message);
 
         } catch (\Exception $e) {
-            // Log the error and handle non-production environments with detailed error message
             if (App::environment('production')) {
                 $error = 'An error occurred while processing the request. Please try again.';
                 Log::error('PostType Error: ' . $e->getMessage());
@@ -385,7 +377,6 @@ class PostTypeController extends Controller
                 $error = 'Error: ' . $e->getMessage();
             }
 
-            // Redirect back with an error message
             return redirect()->back()->with('error', $error);
         }
     }

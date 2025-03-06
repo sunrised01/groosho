@@ -1060,3 +1060,74 @@ td {
 }
 
 /*# sourceMappingURL=theme-default.css.map */
+
+/* Block Editor Styles */
+.blocks-container {
+  margin-top: 20px;
+}
+
+.block {
+  margin-bottom: 20px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.block-header {
+  display: flex;
+  justify-content: flex-end;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* Dropdown Menu Styles */
+.dropdown-menu {
+  position: absolute;
+  top: 50px;
+  left: 20px;
+  background-color: white;
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 5px;
+  width: 200px;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.dropdown-item img {
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+}
+
+.dropdown-item:hover {
+  background-color: #f0f0f0;
+}
+
+/* Block Content Styles */
+textarea {
+  width: 100%;
+  height: 100px;
+  margin-top: 10px;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+h3 {
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin: 0;
+}
+
+img {
+  max-width: 100%;
+  margin-top: 10px;
+}

@@ -10,13 +10,18 @@ use Illuminate\Support\Facades\Storage;
 class FilesController extends Controller
 {
     /**
-     * Display admin files view
+     * Display admin files view.
+     * 
+     * This function retrieves the list of files from the database, sorts them by creation date in descending 
+     * order, and paginates the results. It then adds preview URLs for each file depending on its mime type (for images, 
+     * it uses the small-sized image). It returns an Inertia response with the file data and pagination details.
+     * 
+     * @return \Inertia\Response
      */
     public function index()
     {        
         $files = Files::orderBy('created_at', 'desc')->paginate(12);
 
-       
         $filesData = $files->map(function ($file) {
             if (strpos($file->mime_type, 'image/') !== false) {
                 $file->preview_url = asset('storage/' . $file->small_path);
@@ -40,10 +45,17 @@ class FilesController extends Controller
 
     /**
      * Handle file upload.
+     * 
+     * This function processes file uploads. It first validates the file's size, then stores it in a structured 
+     * directory format based on the current date. If the file is an image, it resizes the image into both a small 
+     * and a thumbnail size. Finally, it creates a new record in the database with information such as file name, 
+     * size, paths, and mime type.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request)
     {
-       
         $file = $request->file('file');
         $originalName = $file->getClientOriginalName();
         $extension = $file->getClientOriginalExtension();
@@ -66,11 +78,11 @@ class FilesController extends Controller
 
         $path = "uploads/{$year}/{$month}/{$day}/";
      
-       if (!Storage::disk('public')->exists($path)) {
+        if (!Storage::disk('public')->exists($path)) {
             Storage::disk('public')->makeDirectory($path, 0755, true); 
         }
         
-         $fileName = pathinfo($originalName, PATHINFO_FILENAME);
+        $fileName = pathinfo($originalName, PATHINFO_FILENAME);
         $uniqueName = $fileName . '.' . $extension;
         $counter = 1;
 
@@ -81,7 +93,6 @@ class FilesController extends Controller
 
         $file->storeAs($path, $uniqueName, 'public');
      
-      
         $filePath = $path . $uniqueName;
         $fileType = $file->getClientMimeType();
 
@@ -127,10 +138,19 @@ class FilesController extends Controller
 
     /**
      * Resize image using PHP's GD library.
+     * 
+     * This function resizes an image to the specified dimensions and applies a slight contrast filter. It saves 
+     * the resized image in the appropriate folder with a prefix indicating its size (thumb, small).
+     * 
+     * @param string $filePath
+     * @param string $path
+     * @param string $uniqueName
+     * @param int $width
+     * @param int $height
+     * @param string $size
      */
     private function resizeImage($filePath, $path, $uniqueName, $width, $height, $size)
     {
-    
         list($originalWidth, $originalHeight, $imageType) = getimagesize($filePath);
 
         switch ($imageType) {
@@ -177,10 +197,15 @@ class FilesController extends Controller
         imagedestroy($resizedImage);
     }
 
-     /**
+    /**
      * Update file information.
+     * 
+     * This function validates the provided data (title, caption, and description) for the file and updates the 
+     * record in the database. It returns a JSON response indicating success.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
-
     public function update(Request $request)
     {
         $validated = $request->validate([
@@ -201,7 +226,13 @@ class FilesController extends Controller
     }
 
     /**
-     * Fetch Files
+     * Fetch Files.
+     * 
+     * This function retrieves files based on the query parameters such as file type and pagination. It supports filtering 
+     * for specific file types (e.g., images or videos) and returns the paginated list of files along with pagination details.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function fetchFiles(Request $request)
     {
@@ -242,6 +273,12 @@ class FilesController extends Controller
 
     /**
      * Delete a file.
+     * 
+     * This function deletes the file from both the storage and the database. It ensures that both the main file 
+     * and any related resized versions (thumbnail, small size) are removed from storage before deleting the record.
+     * 
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
      */
     public function destroy($id)
     {

@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class posts extends Model
+class Posts extends Model
 {
     /**
      *  Specify the fillable attributes to allow mass assignment.

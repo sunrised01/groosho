@@ -87,22 +87,21 @@ Route::prefix('admin')->middleware(['admin', AdminMiddleware::class])->group(fun
     
     Route::prefix('pt')->group(function () {
         // Post Management Routes (for handling different post types)
-        Route::get('{post_type}', [PostController::class, 'index'])->name('posts.index'); 
-        Route::get('{post_type}/create', [PostController::class, 'create'])->name('posts.create');  
-        Route::get('{post_type}/{post}/edit', [PostController::class, 'edit'])->name('posts.edit'); 
-        Route::put('{post_type}/{post}', [PostController::class, 'update'])->name('posts.update');  
-        Route::delete('{post_type}/{post}', [PostController::class, 'destroy'])->name('posts.destroy');  
+        Route::get('{post_type}', [PostController::class, 'index'])->name('post.index')->middleware('posttype.exists');  
+        Route::get('{post_type}/create', [PostController::class, 'create'])->name('post.create');  
+        Route::get('{post_type}/{post_id}/edit', [PostController::class, 'edit'])->name('post.edit'); 
+        Route::put('{post_type}/{post_id}', [PostController::class, 'update'])->name('post.update');  
+        Route::delete('{post_type}/{post_id}', [PostController::class, 'destroy'])->name('post.destroy');  
     });
 
     Route::prefix('term')->group(function () {
-        // Term Management Routes (for handling different post types)
-        Route::get('{taxonomy}', [TermsController::class, 'index'])->name('term.index'); 
+        // Term Management Routes 
+        Route::get('{taxonomy}', [TermsController::class, 'index'])->name('term.index')->middleware('taxonomy.exists'); 
         Route::post('{taxonomy}/store', [TermsController::class, 'store'])->name('term.store'); 
-        Route::get('{taxonomy}/{term_id}/edit', [TermsController::class, 'edit'])->name('term.edit'); 
+        Route::get('{taxonomy}/{term_id}/edit', [TermsController::class, 'edit'])->name('term.edit')->middleware('taxonomy.exists'); 
         Route::put('{taxonomy}/{term_id}/update', [TermsController::class, 'update'])->name('term.update');  
         Route::delete('{taxonomy}/{term_id}/delete', [TermsController::class, 'destroy'])->name('term.delete');
         Route::post('{taxonomy}/bluk/delete', [TermsController::class, 'bulkDelete'])->name('term.bulk.delete');
-  
     });
  
 });

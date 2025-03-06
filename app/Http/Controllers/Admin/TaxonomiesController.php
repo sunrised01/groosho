@@ -15,28 +15,27 @@ class TaxonomiesController extends Controller
 {
     /**
      * Display a listing of the taxonomies with search and pagination.
+     * 
+     * This method retrieves all taxonomies, applies various filters like search, 
+     * status, date range, and sorting. It then returns the data along with pagination 
+     * and additional counts for different taxonomy statuses.
      *
      * @param \Illuminate\Http\Request $request
      * @return \Inertia\Response
      */
     public function index(Request $request)
     {
-        // Retrieve filters and parameters from the request
-        $search = urldecode($request->input('s', ''));  // Search query (decoded)
-        $perPage = $request->input('per_page', 10);     // Items per page
-        $orderBy = $request->input('order_by', 'asc');  // Order by direction (ascending or descending)
-        $orderColumn = $request->input('order_column', 'title');  // Column to order by (default is title)
-        $dateFilter = $request->input('date_filter', 'all'); // Date filter (default is all)
-        $status = $request->input('status', '');  // Status filter
+        $search = urldecode($request->input('s', ''));
+        $perPage = $request->input('per_page', 10);
+        $orderBy = $request->input('order_by', 'asc'); 
+        $orderColumn = $request->input('order_column', 'title'); 
+        $dateFilter = $request->input('date_filter', 'all'); 
+        $status = $request->input('status', '');
 
-        // Build query with filters
         $query = Taxonomies::query();
 
-        // Search filter: if search term exists, apply filtering based on title and slug
         if (!empty($search)) {
-            $words = explode(' ', $search);  // Split search term into words
-            
-            // Apply the search filter to each word
+            $words = explode(' ', $search);  
             foreach ($words as $word) {
                 $query->orWhere(function ($q) use ($word) {
                     $q->where('title', 'like', "%{$word}%");
@@ -44,7 +43,6 @@ class TaxonomiesController extends Controller
             }
         }
 
-         // Status filter: apply the status filter to the query
         if (!empty($status)) {
             $query->where('status', $status); 
         }
@@ -52,24 +50,18 @@ class TaxonomiesController extends Controller
             $query->where('status', '!=', 'trash'); 
         }
         
-        // Date filter: filter by the selected month if the date filter is not 'all'
         if ($dateFilter !== 'all') {
-            list($year, $month) = explode('-', $dateFilter);  // Extract year and month from date filter
-            
-            // Set the start and end dates for the selected month
+            list($year, $month) = explode('-', $dateFilter);  
             $startDate = \Carbon\Carbon::create($year, $month, 1)->startOfMonth();
             $endDate = \Carbon\Carbon::create($year, $month, 1)->endOfMonth();
             
-            $query->whereBetween('created_at', [$startDate, $endDate]);  // Apply date filter
+            $query->whereBetween('created_at', [$startDate, $endDate]);
         }
 
-        // Apply ordering (based on the specified column and direction)
         $query->orderBy($orderColumn, $orderBy);
 
-        // Paginate the results
         $taxonomies = $query->with('postTypes')->paginate($perPage);
 
-        // Get unique months from the created_at field for filtering by date
         $months = Taxonomies::selectRaw('YEAR(created_at) as year, MONTH(created_at) as month')
         ->groupBy('year', 'month')
         ->orderByDesc('year')
@@ -77,20 +69,14 @@ class TaxonomiesController extends Controller
         ->get()
         ->map(function ($item) {
             $monthName = \Carbon\Carbon::create($item->year, $item->month, 1)->format('M Y');
-            return ['value' => "{$item->year}-{$item->month}", 'label' => $monthName];  // Map to year-month labels
+            return ['value' => "{$item->year}-{$item->month}", 'label' => $monthName]; 
         });
 
-        /// Count of publish taxonomies
         $totalCount = Taxonomies::where('status', '!=', 'trash')->count();
-        /// Count of publish taxonomies
         $publishCount = Taxonomies::where('status', 'publish')->count();
-        // Count of trash taxonomies
         $trashCount = Taxonomies::where('status', 'trash')->count();
-        // Count of draft taxonomies
         $draftCount = Taxonomies::where('status', 'draft')->count();
 
-        
-        // Return the view with data to display the taxonomies
         return Inertia::render('Admin/Taxonomies/Index', [
             'taxonomies' => $taxonomies,
             'pagination' => [
@@ -108,18 +94,19 @@ class TaxonomiesController extends Controller
         ]);
     }
 
-    /**
+   /**
      * Show the form for creating a new custom Taxonomy.
+     *
+     * This method fetches users and post types for the creation form and 
+     * returns the view to create a new taxonomy.
      *
      * @return \Inertia\Response
      */
     public function create()
     {
-        // Fetch users for the author field in the create form
         $users = User::select('id', 'name')->get();
         $postTypes = PostType::select('id', 'title', 'slug')->where('status', 'publish')->get();
         
-        // Return the create view with users to select from
         return Inertia::render('Admin/Taxonomies/Create', [
             'users' => $users,
             'postTypes' => $postTypes,
@@ -129,12 +116,16 @@ class TaxonomiesController extends Controller
     /**
      * Store a newly created taxonomy in the database.
      *
+     * This method validates the input, creates a new taxonomy, and 
+     * associates it with the selected post types. It handles errors and redirects 
+     * to the taxonomy edit page upon successful creation.
+     *
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\RedirectResponse
      */
+
     public function store(Request $request)
     {
-        // Fetch users for the author selection field
         $users = User::select('id', 'name')->get();
         $postTypes = PostType::select('id', 'title', 'slug')->where('status', 'publish')->get();
 
@@ -156,7 +147,6 @@ class TaxonomiesController extends Controller
                 'slug.unique' => 'The "'.$request->slug.'" Taxonomy Name(Slug) is already used in the system, Try with a different one.',
             ]);
 
-            // Create the new taxonomy with the validated data
             $taxonomy = Taxonomies::create([
                 'title' => $request->title,
                 'slug' => $request->slug,
@@ -172,11 +162,9 @@ class TaxonomiesController extends Controller
                 $taxonomy->postTypes()->attach($request->post_type);
             } 
             
-            // Redirect to edit the newly created taxonomy with a success message
             return redirect()->route('taxonomy.edit', $taxonomy->id)->with('success', 'Taxonomy created successfully!');
             
         } catch (\Illuminate\Validation\ValidationException $e) {
-            // If validation fails, return back to the create form with errors
             return Inertia::render('Admin/Taxonomies/Create', [
                 'users' => $users,
                 'postTypes' => $postTypes,
@@ -184,7 +172,6 @@ class TaxonomiesController extends Controller
                 'formData' => $request->all(),
             ]);
         } catch (\Exception $e) {
-            // Log the error and return back to the form with a general error
             if (App::environment('production')) {
                 $error = 'An error occurred while creating the taxonomy. Please try again.';
                 Log::error('Error updating taxonomy: ' . $e->getMessage());
@@ -204,17 +191,24 @@ class TaxonomiesController extends Controller
     /**
      * Show the form for editing the specified taxonomy.
      *
+     * This method retrieves the taxonomy data and the necessary options 
+     * (users, post types) for editing and returns the view to edit the taxonomy.
+     *
      * @param  int  $id
      * @return \Inertia\Response
      */
     public function edit($id)
     {
-        // Fetch users and the taxonomy to be edited
+        if (!is_numeric($id)) {
+            abort(404, 'Invalid ID');
+        }
         $users = User::select('id', 'name')->get();
         $taxonomy = Taxonomies::with('postTypes')->findOrFail($id);
+        if (!$taxonomy) {
+            abort(404, 'Taxonomy not found');
+        }
         $postTypes = PostType::select('id', 'title', 'slug')->where('status', 'publish')->get();
                 
-        // Return the edit form view with the taxonomy data
         return Inertia::render('Admin/Taxonomies/Edit', [
             'taxonomy' => $taxonomy,
             'users' => $users, 
@@ -224,6 +218,10 @@ class TaxonomiesController extends Controller
 
     /**
      * Update the specified taxonomy in the database.
+     *
+     * This method validates the update request, updates the taxonomy 
+     * with new values, and manages the associations with post types. 
+     * It handles errors and redirects to the taxonomy edit page upon successful update.
      *
      * @param \Illuminate\Http\Request $request
      * @param  int  $id
@@ -237,7 +235,6 @@ class TaxonomiesController extends Controller
 
 
         try {
-            // Validate the incoming request data
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
                 'slug' => [
@@ -255,7 +252,6 @@ class TaxonomiesController extends Controller
                 'slug.unique' => 'The "'.$request->slug.'" Taxonomy Name(Slug) is already used in the system, Try with a different one.',
             ]);
             
-            // Update the taxonomy in the database
             $taxonomy->update([
                 'title' => $request->title,
                 'slug' => $request->slug,
@@ -275,11 +271,9 @@ class TaxonomiesController extends Controller
                 $taxonomy->postTypes()->detach($request->post_type);
             }
 
-            // Redirect to the edit page with success message
             return redirect()->route('taxonomy.edit', $id)->with('success', 'Taxonomy updated successfully.');
             
         } catch (\Illuminate\Validation\ValidationException $e) {
-            // If validation fails, return back to the create form with errors
             return Inertia::render('Admin/Taxonomies/Edit', [
                 'users' => $users,
                 'postTypes' => $postTypes,
@@ -288,7 +282,6 @@ class TaxonomiesController extends Controller
                 'formData' => $request->all(),
             ]);
         } catch (\Exception $e) {
-            // Log the error and return back to the form with a general error
             if (App::environment('production')) {
                 $error = 'An error occurred while creating the taxonomy. Please try again.';
                 Log::error('Error updating post type: ' . $e->getMessage());
@@ -309,21 +302,24 @@ class TaxonomiesController extends Controller
     /**
      * Move the specified taxonomy to the trash.
      *
+     * This method updates the status of a taxonomy to 'trash' or 
+     * deletes it permanently based on the provided status and 
+     * then redirects the user accordingly with a success message.
+     *
      * @param \Illuminate\Http\Request $request
      * @param  int  $id
+     * @param  string $status
      * @return \Illuminate\Http\RedirectResponse
      */
     public function updateStatus(Request $request, $id, $status)
     {
         try {
-            // Validate that the status is one of the allowed values
             $validStatuses = ['publish', 'draft', 'trash', 'delete'];
             
             if (!in_array($status, $validStatuses)) {
                 return redirect()->back()->with('error', 'Invalid status provided.');
             }
 
-            // Find the taxonomy by ID and update its status to 'trash'
             $taxonomy = Taxonomies::findOrFail($id);
             $referer = $request->headers->get('referer');
             
@@ -344,17 +340,13 @@ class TaxonomiesController extends Controller
                 $message = 'Taxonomy has been restored from trash';
             }  
             
-            // Redirect based on the referer URL (Edit or Index page)
             if (strpos($referer, route('taxonomy.edit', $taxonomy->id)) !== false) {
-                // Request came from the Edit page, redirect to the index page
                 return redirect()->route('taxonomies.index')->with('success', $message);
             } else {
-                // Request came from the Index page or elsewhere, redirect back
                 return back()->with('success', $message);
             }
             
         } catch (\Illuminate\Validation\ValidationException $e) {
-            // Handle validation exceptions and log the error
             if (App::environment('production')) {
                 $error = 'Taxonomy not found';
                 Log::error('Taxonomy not found: '. $e->getMessage());
@@ -363,7 +355,7 @@ class TaxonomiesController extends Controller
             }
             return redirect()->back()->with('error', $error);
         } catch (\Exception $e) {
-            // Log the error and handle non-production environments with detailed error message
+            
             if (App::environment('production')) {
                 $error = 'An error occurred while moving the taxonomy to trash. Please try again.';
                 Log::error('Taxonomy Error: ' . $e->getMessage());
@@ -374,19 +366,25 @@ class TaxonomiesController extends Controller
         }
     }
 
+    /**
+     * Perform bulk actions on selected taxonomies.
+     *
+     * This method handles bulk actions like deleting or moving taxonomies to trash 
+     * by taking a list of selected IDs and performing the necessary action. 
+     * It then redirects back with a success message.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param  string $status
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function bulkAction(Request $request, $status)
     {
         try {
-            // Validate that the 'ids' array is not empty
             if ($request->query('ids') == null) {
                 return redirect()->back()->with('error', 'No IDs selected.');
             }
-            // Get the 'ids' from the query string
             $ids = explode(',', $request->query('ids')); 
             
-           
-            
-            // Check for the status and perform actions accordingly
             if ($status == 'delete_permanently') {
                 Taxonomies::whereIn('id', $ids)->delete();
                 $message = 'Selected taxonomies successfully deleted';
@@ -399,19 +397,15 @@ class TaxonomiesController extends Controller
                 $message = 'Selected taxonomies has been restored from trash';
             }
 
-            // Redirect back after successful action
             return redirect()->back()->with('success', $message);
 
         } catch (\Exception $e) {
-            // Log the error and handle non-production environments with detailed error message
             if (App::environment('production')) {
                 $error = 'An error occurred while processing the request. Please try again.';
                 Log::error('PostType Error: ' . $e->getMessage());
             } else {
                 $error = 'Error: ' . $e->getMessage();
             }
-
-            // Redirect back with an error message
             return redirect()->back()->with('error', $error);
         }
     }

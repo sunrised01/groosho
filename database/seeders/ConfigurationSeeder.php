@@ -1,5 +1,4 @@
 <?php
-
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
@@ -25,6 +24,7 @@ class ConfigurationSeeder extends Seeder
 
         $path = "uploads/{$year}/{$month}/{$day}/";
         
+        // Ensure the directory exists
         if (!Storage::disk('public')->exists($path)) {
             Storage::disk('public')->makeDirectory($path, 0755, true);
         }
@@ -32,19 +32,22 @@ class ConfigurationSeeder extends Seeder
         $imageContents = file_get_contents($imageUrl);
         $uniqueName = pathinfo($imageName, PATHINFO_FILENAME) . '.' . $extension;
         
+        // Check for filename conflict and create unique name
         $counter = 1;
-        while (Storage::exists($path . $uniqueName)) {
+        while (Storage::disk('public')->exists($path . $uniqueName)) {
             $uniqueName = pathinfo($imageName, PATHINFO_FILENAME) . '_' . $counter . '.' . $extension;
             $counter++;
         }
 
-        Storage::put($path . $uniqueName, $imageContents);
+        // Store the file on the 'public' disk
+        Storage::disk('public')->put($path . $uniqueName, $imageContents);
 
         $filePath = $path . $uniqueName;
         $fileSize = strlen($imageContents);
         $fileType = 'image/png'; 
         $fileName = pathinfo($uniqueName, PATHINFO_FILENAME);
 
+        // Store the file record in the database
         $file = Files::create([
             'title' => $fileName,
             'name' => $uniqueName,
@@ -56,8 +59,9 @@ class ConfigurationSeeder extends Seeder
             'thumb_path' => null,
         ]);
 
+        // Update the configuration with the file ID
         Configurations::updateOrCreate(
-            ['key' => 'placeholder_image'],
+            ['key' => 'placeholder'],
             ['value' => $file->id]
         );
 

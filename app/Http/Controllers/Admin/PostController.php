@@ -5,92 +5,112 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Posts;
+use Inertia\Inertia;
+use App\Models\PostType;
+use App\Models\User;
 
 
 class PostController extends Controller
 {
-    /**
-     * Display a listing of posts for the given post type.
-     *
-     * @param  string  $postType
-     * @return \Illuminate\View\View
-     */
-    public function index($postType)
+   
+    public function index(Request $request, $post_type)
     {
-        // Ensure the post type is valid (e.g., post, page, event, movie, etc.)
-        $validPostTypes = ['post', 'page', 'event', 'movie']; // Add more as needed
+        $postType = PostType::where('slug', $post_type)->with('taxonomies')->first();
 
-        if (!in_array($postType, $validPostTypes)) {
-            abort(404, 'Post type not found');
+        $search = urldecode($request->input('s', ''));
+        $perPage = $request->input('per_page', 10);
+        $orderBy = $request->input('order_by', 'asc'); 
+        $orderColumn = $request->input('order_column', 'title'); 
+        $dateFilter = $request->input('date_filter', 'all'); 
+        $status = $request->input('status', '');
+
+        $query = Posts::query();
+
+        if (!empty($search)) {
+            $words = explode(' ', $search);  
+            foreach ($words as $word) {
+                $query->orWhere(function ($q) use ($word) {
+                    $q->where('title', 'like', "%{$word}%");
+                });
+            }
         }
 
-        // Fetch posts based on the post type
-        $posts = Posts::where('post_type', $postType)->get();
+        if (!empty($status)) {
+            $query->where('status', $status); 
+        }
+        else{
+            $query->where('status', '!=', 'trash'); 
+        }
+        
+        if ($dateFilter !== 'all') {
+            list($year, $month) = explode('-', $dateFilter);  
+            $startDate = \Carbon\Carbon::create($year, $month, 1)->startOfMonth();
+            $endDate = \Carbon\Carbon::create($year, $month, 1)->endOfMonth();
+            
+            $query->whereBetween('created_at', [$startDate, $endDate]);
+        }
 
-        return view('posts.index', compact('posts', 'postType'));
+        $query->orderBy($orderColumn, $orderBy);
+
+        $posts = $query->with('postTypes')->paginate($perPage);
+
+        $months = Posts::selectRaw('YEAR(created_at) as year, MONTH(created_at) as month')
+        ->groupBy('year', 'month')
+        ->orderByDesc('year')
+        ->orderByDesc('month')
+        ->get()
+        ->map(function ($item) {
+            $monthName = \Carbon\Carbon::create($item->year, $item->month, 1)->format('M Y');
+            return ['value' => "{$item->year}-{$item->month}", 'label' => $monthName]; 
+        });
+
+        $totalCount = Posts::where('status', '!=', 'trash')->count();
+        $publishCount = Posts::where('status', 'publish')->count();
+        $trashCount = Posts::where('status', 'trash')->count();
+        $draftCount = Posts::where('status', 'draft')->count();
+
+        return Inertia::render('Admin/Posts/Index', [
+            'postType' => $postType,
+            'posts' => $posts,
+            'pagination' => [
+                'current_page' => $posts->currentPage(),
+                'last_page' => $posts->lastPage(),
+                'per_page' => $posts->perPage(),
+                'total' => $posts->total(),
+            ],
+            'filters' => $request->only(['s', 'per_page', 'order_by', 'order_column', 'date_filter', 'status']),
+            'months' => $months,
+            'totalCount' => $totalCount,  
+            'publishCount' => $publishCount,  
+            'trashCount' => $trashCount,
+            'draftCount' => $draftCount,
+        ]);
     }
 
-    /**
-     * Show the form for editing the specified post.
-     *
-     * @param  string  $postType
-     * @param  int  $post
-     * @return \Illuminate\View\View
-     */
+    public function create()
+    {
+        $users = User::select('id', 'name')->get();
+        return Inertia::render('Admin/Posts/Create', [
+            'users' => $users
+        ]);
+    }
+
     public function edit($postType, $post)
     {
-        // Ensure the post exists
         $post = Posts::findOrFail($post);
 
         return view('posts.edit', compact('post', 'postType'));
     }
 
-    /**
-     * Update the specified post in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  string  $postType
-     * @param  int  $post
-     * @return \Illuminate\Http\RedirectResponse
-     */
+    
     public function update(Request $request, $postType, $post)
     {
-        // Validate the request
-        $request->validate([
-            'post_title' => 'required|string|max:255',
-            'post_content' => 'required|string',
-        ]);
-
-        // Ensure the post exists
-        $post = Posts::findOrFail($post);
-
-        // Update the post fields
-        $post->update([
-            'post_title' => $request->input('post_title'),
-            'post_content' => $request->input('post_content'),
-            'post_slug' => str_slug($request->input('post_title')), // Example of creating a slug
-        ]);
-
-        return redirect()->route('posts.index', ['post_type' => $postType])
-            ->with('success', 'Post updated successfully');
+        
     }
 
-    /**
-     * Remove the specified post from storage.
-     *
-     * @param  string  $postType
-     * @param  int  $post
-     * @return \Illuminate\Http\RedirectResponse
-     */
+    
     public function destroy($postType, $post)
     {
-        // Ensure the post exists
-        $post = Posts::findOrFail($post);
-
-        // Delete the post
-        $post->delete();
-
-        return redirect()->route('posts.index', ['post_type' => $postType])
-            ->with('success', 'Post deleted successfully');
+       
     }
 }

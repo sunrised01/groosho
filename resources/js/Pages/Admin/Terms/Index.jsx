@@ -1,12 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Inertia } from '@inertiajs/inertia'; 
-import Dropdown from '@/Components/Dropdown';
 import AppLayout from '@/Pages/Admin/Layouts/AppLayout';
 import { Head, Link, usePage, useForm } from '@inertiajs/react';
 import FeaturedImageSelector from '@/Components/Admin/FeaturedImageSelector';
-import Pagination from '@/Components/Pagination';
 import { FaArrowUp, FaArrowDown, FaTimes } from 'react-icons/fa'; 
-import { toast } from 'react-toastify';
 
 
 export default function Index() {
@@ -144,15 +140,15 @@ export default function Index() {
                     </td>
                     <td style={{ textAlign: 'center' }}>
                         <img 
-                            src={term.attachment ? term.attachment.small_url : ''} 
+                            src={term.attachment?.small_url || term.attachment?.thumb_url || term.attachment?.original_url || ''} 
                             alt="Term Image" 
                             style={{
-                            marginTop: '12px',
-                            borderRadius: '2px', 
-                            objectFit: 'cover',
+                                marginTop: '12px',
+                                borderRadius: '2px', 
+                                objectFit: 'cover',
                             }} 
                         />
-                        </td>
+                    </td>
 
                     <td className="position-relative">
                         

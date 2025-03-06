@@ -18,6 +18,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
+            'taxonomy.exists' => \App\Http\Middleware\TaxonomyExists::class,
+            'posttype.exists' => \App\Http\Middleware\PostTypeExists::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
