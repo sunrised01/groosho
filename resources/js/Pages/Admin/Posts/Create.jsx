@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
 import AppLayout from '@/Pages/Admin/Layouts/AppLayout';
-import BlockEditor from '@/Components/BlockEditor';
+import TextEditor from '@/Components/TextEditor';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { FaChevronDown, FaChevronUp, FaEye, FaMapPin, FaCalendar } from 'react-icons/fa';
 import { toast } from 'react-toastify';
-
 
 export default function Create({ errors, old, users }) {
    
@@ -97,6 +96,7 @@ export default function Create({ errors, old, users }) {
     const openVisibilityBox = () => {
         setIsOpenVisibilityBox(true);
     };
+
   
     return (
         <AppLayout>
@@ -151,7 +151,7 @@ export default function Create({ errors, old, users }) {
                                 <div className="card mb-4">
                                     <div className="card-body">
                                         <div className="form-fields">
-                                            <BlockEditor />
+                                            <TextEditor />
                                         </div>
                                     </div>
                                 </div>
@@ -271,7 +271,7 @@ export default function Create({ errors, old, users }) {
                                                     <div className="d-flex justify-content-between align-items-center">
                                                         <div></div>
                                                         {/* Submit Button */}
-                                                        <button type="submit" className="btn btn-primary" disabled={processing}>
+                                                        <button type="submit" className="btn btn-outline-primary" disabled={processing}>
                                                             {processing ? (
                                                                 <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                                                             ) : (

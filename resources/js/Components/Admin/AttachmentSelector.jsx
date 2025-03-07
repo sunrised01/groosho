@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
-import { FaFileAlt, FaVideo } from "react-icons/fa";
+import { FaFileAlt, FaVideo, FaCamera } from "react-icons/fa";
 import { MdPictureAsPdf, MdCheckCircle } from "react-icons/md";
 
 
 
-const FeaturedImageSelector = ({ onImageSelect, buttonname, filetype }) => {
+const AttachmentSelector = ({ onImageSelect, icon, buttonname, filetype, classname }) => {
 
    const [isOpen, setIsOpen] = useState(false);
    const [activeTab, setActiveTab] = useState('upload');
@@ -203,8 +203,9 @@ const FeaturedImageSelector = ({ onImageSelect, buttonname, filetype }) => {
 
    //console.log(currentPage);
    return (
-      <div>
-         <button type="button" className="btn btn-outline-secondary" onClick={toggleModal}>
+      <div> 
+         <button type="button" className={classname ? classname : 'btn btn-outline-primary'} onClick={toggleModal}>
+            <span className="me-2">{icon ? <FaCamera /> : ''}</span>
             {buttonname ? buttonname : 'Select Featured Image'}
          </button>
 
@@ -502,4 +503,4 @@ const FeaturedImageSelector = ({ onImageSelect, buttonname, filetype }) => {
    );
 };
 
-export default FeaturedImageSelector;
+export default AttachmentSelector;

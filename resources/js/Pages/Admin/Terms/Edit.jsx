@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import AppLayout from '@/Pages/Admin/Layouts/AppLayout';
 import { Head, usePage, useForm, Link } from '@inertiajs/react';
-import FeaturedImageSelector from '@/Components/Admin/FeaturedImageSelector';
+import AttachmentSelector from '@/Components/Admin/AttachmentSelector';
 import { FaTimes } from 'react-icons/fa'; 
 
 
@@ -220,7 +220,7 @@ export default function Edit() {
                                 ) : (
                                     <div className="mb-3">
                                         <label htmlFor="image" className="form-label">Upload Image</label>
-                                        <FeaturedImageSelector onImageSelect={insertFeaturedImage} buttonname="Select Image" filetype="image" />
+                                        <AttachmentSelector onImageSelect={insertFeaturedImage} buttonname="Select Image" filetype="image" />
                                     </div>
                                 )}
 
