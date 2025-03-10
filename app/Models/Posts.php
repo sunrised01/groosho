@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Faker\Core\File;
 use Illuminate\Database\Eloquent\Model;
 
 class Posts extends Model
@@ -11,14 +12,17 @@ class Posts extends Model
     **/
 
     protected $fillable = [
-        'post_author',
-        'post_title',
-        'post_slug',
-        'post_excerpt',
-        'post_content',
-        'post_status',
-        'post_parent',
+        'author_id',
+        'title',
+        'slug',
+        'excerpt',
+        'content',
+        'parent_id',
+        'attachment_id',
         'post_type',
+        'status',
+        'visibility',
+        'password',
     ];
 
     /**
@@ -33,4 +37,17 @@ class Posts extends Model
     {
         return $this->hasMany(PostMeta::class, 'post_id', 'id');
     }
+
+    // Define the relationship with the User (Author)
+    public function author()
+    {
+        return $this->belongsTo(User::class, 'author_id'); 
+    }
+
+    public function attchment_data()
+    {
+        return $this->belongsTo(Files::class, 'attachment_id'); 
+    }
+
+    
 }

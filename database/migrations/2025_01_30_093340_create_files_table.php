@@ -17,10 +17,10 @@ return new class extends Migration
             $table->string('name');
             $table->integer('author');
             $table->string('file_size');
-            $table->string('path');
             $table->string('mime_type');
-            $table->string('small_path')->nullable();
-            $table->string('thumb_path')->nullable();
+            $table->string('file_path')->nullable();
+            $table->string('thumbnail_path')->nullable();
+            $table->string('featured_path')->nullable();
             $table->text('caption')->nullable();
             $table->text('description')->nullable();
             $table->timestamps();

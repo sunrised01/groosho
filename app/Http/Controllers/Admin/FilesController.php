@@ -23,12 +23,11 @@ class FilesController extends Controller
         $files = Files::orderBy('created_at', 'desc')->paginate(12);
 
         $filesData = $files->map(function ($file) {
-            if (strpos($file->mime_type, 'image/') !== false) {
-                $file->preview_url = asset('storage/' . $file->small_path);
-            } else {
-                $file->preview_url = asset('storage/' . $file->path);
-            }
-            $file->url = asset('storage/' . $file->path);
+            $file->attachments = [
+                'original_url' => asset('storage/' . $file->file_path),
+                'featured_url' => $file->featured_path ? asset('storage/' . $file->featured_path) : '',
+                'thumbnail_url' => $file->thumbnail_path ? asset('storage/' . $file->thumbnail_path) : '',
+            ];
             return $file;
         });
 
@@ -99,13 +98,13 @@ class FilesController extends Controller
         if (in_array($fileType, ['image/jpeg', 'image/png', 'image/gif', 'image/webp'])) {
             $localPath = Storage::disk('public')->path($filePath);
 
-            $this->resizeImage($localPath, $path, $uniqueName, 300, 300, 'thumb');
-            $this->resizeImage($localPath, $path, $uniqueName, 150, 150, 'small');
+            $this->resizeImage($localPath, $path, $uniqueName, 300, 300, 'featured');
+            $this->resizeImage($localPath, $path, $uniqueName, 150, 150, 'thumbnail');
             
             $resizedPaths = [
                 'original' => $filePath,
-                'small' => $path . 'small_' . $uniqueName,
-                'thumb' => $path . 'thumb_' . $uniqueName,
+                'featured' => $path . 'featured_' . $uniqueName,
+                'thumbnail' => $path . 'thumbnail_' . $uniqueName,
             ];
         } else {
             $resizedPaths = [
@@ -118,20 +117,19 @@ class FilesController extends Controller
             'name' => $uniqueName,
             'author' => auth()->user()->id,
             'file_size' => $fileSize,
-            'path' => $resizedPaths['original'],
+            'file_path' => $resizedPaths['original'],
+            'featured_path' => $resizedPaths['featured'] ?? null,
+            'thumbnail_path' => $resizedPaths['thumbnail'] ?? null,
             'mime_type' => $fileType,
-            'small_path' => $resizedPaths['small'] ?? null,
-            'thumb_path' => $resizedPaths['thumb'] ?? null,
         ];
 
         $file = Files::create($insertData);
 
-        if (strpos($file->mime_type, 'image/') !== false) {
-            $file['preview_url'] = asset('storage/' . $file->small_path);
-        } else {
-            $file['preview_url'] = asset('storage/' . $file->path);
-        }
-        $file['url'] = asset('storage/' . $file->path);
+        $file->attachments = [
+            'original_url' => asset('storage/' . $file->file_path),
+            'featured_url' => $file->featured_path ? asset('storage/' . $file->featured_path) : '',
+            'thumbnail_url' => $file->thumbnail_path ? asset('storage/' . $file->thumbnail_path) : '',
+        ];
 
         return response()->json($file, 200);
     }
@@ -251,12 +249,11 @@ class FilesController extends Controller
         $files = $filesQuery->paginate($perPage, ['*'], 'page', $page);
 
         $filesData = $files->map(function ($file) {
-            if (strpos($file->mime_type, 'image/') !== false) {
-                $file->preview_url = asset('storage/' . $file->small_path);
-            } else {
-                $file->preview_url = asset('storage/' . $file->path);
-            }
-            $file->url = asset('storage/' . $file->path);
+            $file->attachments = [
+                'original_url' => asset('storage/' . $file->file_path),
+                'featured_url' => $file->featured_path ? asset('storage/' . $file->featured_path) : '',
+                'thumbnail_url' => $file->thumbnail_path ? asset('storage/' . $file->thumbnail_path) : '',
+            ];
             return $file;
         });
 

@@ -799,12 +799,16 @@ html:not(.layout-menu-collapsed) .bg-menu-theme .menu-inner .menu-item .menu-lin
 }
 
 .file-thumbnail img {
-  max-height: 150px;
-  object-fit: cover;
-  border-radius: 5px;
-  cursor: pointer;
+	max-height: 150px;
+	-o-object-fit: cover;
+	object-fit: cover;
+	border-radius: 5px;
+	cursor: pointer;
+	height: 140px;
 }
-
+.progress-wrapper.failed-process .progress-bar {
+	background: #c60707;
+}
 .file-icon {
 	display: flex;
 	justify-content: center;
@@ -959,7 +963,7 @@ html:not(.layout-menu-collapsed) .bg-menu-theme .menu-inner .menu-item .menu-lin
 }
 
 tr.tb-tr {
-	height: 58px !important;
+	height: 70px !important;
 }
 
 tr.tb-tr:hover .action-icons {

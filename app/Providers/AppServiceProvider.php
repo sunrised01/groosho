@@ -33,10 +33,10 @@ class AppServiceProvider extends ServiceProvider
                 return [
                     'success' => Session::get('success'),
                     'error' => Session::get('error'),
-                    'response' => Session::get('response'),
                     // You can add other session flash data if needed
                 ];
             },
+            'formData' => Session::get('formData'),
             'session_expiry_time' => config('session.lifetime'),
         ]);
     }

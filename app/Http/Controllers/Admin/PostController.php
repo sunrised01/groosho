@@ -8,6 +8,9 @@ use App\Models\Posts;
 use Inertia\Inertia;
 use App\Models\PostType;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Str;
 
 
 class PostController extends Controller
@@ -25,7 +28,7 @@ class PostController extends Controller
         $status = $request->input('status', '');
 
         $query = Posts::query();
-
+        
         if (!empty($search)) {
             $words = explode(' ', $search);  
             foreach ($words as $word) {
@@ -35,6 +38,7 @@ class PostController extends Controller
             }
         }
 
+        $query->where('post_type', $post_type); 
         if (!empty($status)) {
             $query->where('status', $status); 
         }
@@ -52,7 +56,7 @@ class PostController extends Controller
 
         $query->orderBy($orderColumn, $orderBy);
 
-        $posts = $query->with('postTypes')->paginate($perPage);
+        $posts = $query->with('author')->paginate($perPage);
 
         $months = Posts::selectRaw('YEAR(created_at) as year, MONTH(created_at) as month')
         ->groupBy('year', 'month')
@@ -87,25 +91,143 @@ class PostController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(Request $request, $post_type)
     {
         $users = User::select('id', 'name')->get();
+        $postType = PostType::where('slug', $post_type)->first();
         return Inertia::render('Admin/Posts/Create', [
-            'users' => $users
+            'users' => $users,
+            'postType' => $postType,
         ]);
     }
 
-    public function edit($postType, $post)
-    {
-        $post = Posts::findOrFail($post);
+    
 
-        return view('posts.edit', compact('post', 'postType'));
+    public function store(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'title' => 'string|max:255',
+                'description' => 'nullable|string',
+                'status' => 'required|in:publish,draft,trash',
+                'visibility' => 'required|in:public,private,protected',
+                'author_id' => 'required|exists:users,id',
+            ]);
+
+            $post_title = ($request->title != '' ? $request->title : 'No Title');
+            $slug = $request->slug ?: Str::slug($post_title);
+            
+            $originalSlug = $slug; 
+            $counter = 1;
+            while (Posts::where('slug', $slug)->exists()) {
+                $slug = $originalSlug . '-' . $counter;
+                $counter++;
+            }
+
+            $post = Posts::create([
+                'title' => $request->title,
+                'slug' => $slug,
+                'author_id' => $request->author_id,
+                'excerpt' => $request->excerpt,
+                'content' => $request->content,
+                'status' => $request->status,
+                'parent_id' => $request->parent_id,
+                'attachment_id' => $request->attachment_id,
+                'post_type' => $request->post_type,
+                'visibility' => $request->visibility,
+                'password' => ($request->visibility == 'protected' ? $request->password : ''),
+            ]);
+            
+            return redirect()->route('post.edit', [$request->post_type, $post->id])->with('success', $request->post_type.' created successfully!');
+            
+        } catch (\Illuminate\Validation\ValidationException $e) {
+           
+            return redirect()->route('post.create', [$request->post_type])
+                 ->withErrors($e->errors())->with('formData', $request->all());
+            
+        } catch (\Exception $e) {
+            if (App::environment('production')) {
+                $error = 'An error occurred while creating the '.$request->post_type.'. Please try again.';
+                Log::error('Error updating '.$request->post_type.': ' . $e->getMessage());
+            } else {
+                $error = 'Error: ' . $e->getMessage();
+            }
+            return redirect()->route('post.create', [$request->post_type])
+                 ->withErrors(['general' => $error])->with('formData', $request->all());
+        }
     }
 
-    
-    public function update(Request $request, $postType, $post)
+    public function edit(Request $request, $post_type, $post_id)
     {
-        
+        $users = User::select('id', 'name')->get();
+        $postType = PostType::where('slug', $post_type)->first();
+        $post = Posts::with('attchment_data')->find($post_id);
+
+        if ($post && $post->attchment_data) {
+            $post->attachment = [
+                'original_url' => asset('storage/' . $post->attchment_data->file_path),
+                'featured_url' => $post->attchment_data->featured_path ? asset('storage/' . $post->featured_path) : '',
+                'thumbnail_url' => $post->attchment_data->thumbnail_path ? asset('storage/' . $post->thumbnail_path) : '',
+            ]; 
+            unset($term->attchment_data);
+        }
+
+        $post->url = get_permalink($post->slug);
+     
+        return Inertia::render('Admin/Posts/Edit', [
+            'users' => $users,
+            'postType' => $postType,
+            'post' => $post,
+        ]);
+    }
+    
+    public function update(Request $request, $post_type, $post_id)
+    {
+        try {
+            $validated = $request->validate([
+                'title' => 'string|max:255',
+                'description' => 'nullable|string',
+                'status' => 'required|in:publish,draft,trash',
+                'visibility' => 'required|in:public,private,protected',
+                'author_id' => 'required|exists:users,id',
+            ]);
+            $post = Posts::findOrFail($post_id);
+            
+            $post_title = ($request->title != '' ? $request->title : 'No Title');
+
+            $post->update([
+                'title' => $request->title,
+                'slug' => $request->slug,
+                'author_id' => $request->author_id,
+                'excerpt' => $request->excerpt,
+                'content' => $request->content,
+                'status' => $request->status,
+                'parent_id' => $request->parent_id,
+                'attachment_id' => $request->attachment_id,
+                'post_type' => $request->post_type,
+                'visibility' => $request->visibility,
+                'password' => ($request->visibility == 'protected' ? $request->password : ''),
+            ]);
+
+            
+            
+            return redirect()->route('post.edit', [$request->post_type, $post->id])->with('success', $request->post_type.' updated successfully!');
+            
+        } catch (\Illuminate\Validation\ValidationException $e) {
+           
+            return redirect()->route('post.edit', [$post_type, $post_id])
+                 ->withErrors($e->errors())->with('formData', $request->all());
+            
+        } catch (\Exception $e) {
+            if (App::environment('production')) {
+                $error = 'An error occurred while updating the '.$post_type.'. Please try again.';
+                Log::error('Error updating '.$post_type.': ' . $e->getMessage());
+            } else {
+                $error = 'Error: ' . $e->getMessage();
+            }
+            return redirect()->route('post.edit', [$post_type, $post_id])
+                 ->withErrors(['general' => $error])->with('formData', $request->all());
+        }
     }
 
     

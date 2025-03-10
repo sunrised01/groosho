@@ -23,6 +23,8 @@ const AttachmentSelector = ({ onImageSelect, icon, buttonname, filetype, classna
    const toggleModal = () => {
       setIsOpen(!isOpen);
       setSelectedFile(null);
+      setFiles([]);
+      setActiveTab('upload');
    }
 
 
@@ -54,7 +56,6 @@ const AttachmentSelector = ({ onImageSelect, icon, buttonname, filetype, classna
          setLoading(false);
       }
    };
-
 
    // Handel Load More button function
    const handleLoadMore = () => {
@@ -340,8 +341,15 @@ const AttachmentSelector = ({ onImageSelect, icon, buttonname, filetype, classna
                                                    <div className="file-card-body">
                                                       {file.mime_type.startsWith("image") ? (
                                                          <div className="file-thumbnail" onClick={() => handleImageClick(file)}>
+                                                            
                                                             <img
-                                                               src={file.preview_url}
+                                                               src={
+                                                                  file.attachments.thumbnail_url
+                                                                        ? file.attachments.thumbnail_url
+                                                                        : file.attachments.featured_url
+                                                                        ? file.attachments.featured_url
+                                                                        : file.attachments.original_url
+                                                               }
                                                                alt={file.name}
                                                                className="img-fluid rounded"
                                                             />
@@ -392,11 +400,18 @@ const AttachmentSelector = ({ onImageSelect, icon, buttonname, filetype, classna
                                              <div className="col-md-4">
                                                 {selectedFile.mime_type.startsWith("image") ? (
                                                    <img
-                                                      src={selectedFile.preview_url}
-                                                      alt={selectedFile.name}
-                                                      className="img-fluid rounded mb-3"
-                                                      style={{ maxHeight: "300px", objectFit: "contain" }}
-                                                   />
+                                                   src={
+                                                      selectedFile.attachments.thumbnail_url
+                                                            ? selectedFile.attachments.thumbnail_url
+                                                            : selectedFile.attachments.featured_url
+                                                            ? selectedFile.attachments.featured_url
+                                                            : selectedFile.attachments.original_url
+                                                   }
+                                                   alt={selectedFile.name}
+                                                   className="img-fluid rounded"
+                                                   style={{ maxHeight: "300px", objectFit: "contain" }}
+                                                />
+
                                                 ) : (
                                                    <div className="file-icon fileicon">
                                                       {selectedFile.mime_type === "application/pdf" ? (

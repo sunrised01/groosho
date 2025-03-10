@@ -10,7 +10,6 @@ import { FaArrowUp, FaArrowDown } from 'react-icons/fa';
 
 export default function Index() {
     const { posts,postType, filters, pagination, months, totalCount, publishCount, trashCount, draftCount } = usePage().props;
-
     const [currentPage] = useState(pagination.current_page);
     const [lastPage] = useState(pagination.last_page);
     const [selectedRows, setSelectedRows] = useState([]);
@@ -46,7 +45,7 @@ export default function Index() {
 
     return (
         <AppLayout>
-            <Head title="Post Types" />
+            <Head title={postType.title} />
             <div className="row mb-4">
                 <div className="col-12 d-flex align-items-center">
                     <h2 className="page-title mr-2">{postType.title}</h2>
@@ -243,14 +242,14 @@ export default function Index() {
                             <table className="table table-striped">
                                 <thead>
                                     <tr>
-                                        <th className="w-10">
+                                        <th className="w-5">
                                             <input
                                                 type="checkbox"
                                                 onChange={handleSelectAll}
                                                 checked={selectedRows.length === posts.data.length}
                                             />
                                         </th>
-                                        <th  className="w-35">
+                                        <th  className="w-30">
                                             
                                             <div className="d-flex align-items-center">
                                                 <span className="me-3">Title</span>
@@ -281,6 +280,11 @@ export default function Index() {
                                             </div>
 
                                         </th>
+                                        <th className="w-20">
+                                            <div className="d-flex align-items-center">
+                                                <span className="me-3">Slug</span>
+                                            </div>
+                                        </th>
                                         {postType.taxonomies && postType.taxonomies.map((taxonomy, taxoindex) => (
                                             <th key={`taxo_${taxoindex}`}>
                                                 <div className="d-flex align-items-center">
@@ -288,8 +292,12 @@ export default function Index() {
                                                 </div>
                                             </th>
                                         ))}
-
-                                        <th className="w-10">
+                                        <th>
+                                            <div className="d-flex align-items-center">
+                                                <span className="me-3">Author</span>
+                                            </div>
+                                        </th>
+                                        <th className="w-15">
                                             
                                             <div className="d-flex align-items-center">
                                                 <span className="me-3">Date</span>
@@ -339,90 +347,109 @@ export default function Index() {
                                                         {post.title}
                                                     </div>
                                                 :
-                                                <Link href={route('post.edit', post.id)} className="text-decoration-none fw-bold">
-                                                    {post.title} {post.status === 'draft' &&
+                                                <Link 
+                                                href={route('post.edit', [post.post_type, post.id ])} 
+                                                className="text-decoration-none fw-bold"
+                                                >
+                                                {post.title} 
+                                                {post.status === 'draft' && (
                                                     <span className="fw-bold text-black">- Draft</span>
-                                                    }
+                                                )}
                                                 </Link>
+
 
                                                 }
                                                 
 
-                                                <div className="action-icons ">
-                                                    {post.status === 'trash' ?
-                                                        <>
-                                                            <span className="edit">
-                                                                <Link 
-                                                                    as="button"
-                                                                    method="put"
-                                                                    href={route('post.update.status', [post.id, 'draft'])}
-                                                                    className="text-primary mx-2"
-                                                                    style={{ fontSize: '13px' }}
-                                                                >
-                                                                    Restore
-                                                                </Link>
-                                                                | 
-                                                            </span>
-                                                            <span className="trash ms-2">
-                                                                <Link
-                                                                    as="button"
-                                                                    method="put"
-                                                                    href={route('post.update.status', [post.id, 'delete'])}
-                                                                    className="text-danger"
-                                                                    style={{ fontSize: '13px' }}
-                                                                    
-                                                                >
-                                                                  Delete Permanently
-                                                                </Link>
+                                                <div className="action-icons">
+                                                    <div className="d-flex justify-content-left align-items-center">
 
-                                                            </span>
-                                                        </>
-                                                        :
-                                                        <>
-                                                            <span className="edit">
-                                                                <Link href={route('post.edit', postType.id)} className="text-primary mx-2"  style={{ fontSize: '13px' }}>
-                                                                    Edit
-                                                                </Link>
-                                                                | 
-                                                            </span>
-                                                            <span className="trash ms-2">
-                                                                <Link
-                                                                    as="button"
-                                                                      method="put"
-                                                                    href={route('post.update.status', [post.id, 'trash'])}
-                                                                    className="text-danger"
-                                                                    style={{ fontSize: '13px' }}
-                                                                    
-                                                                >
-                                                                    Trash
-                                                                </Link>
-
-                                                            </span>
-                                                            {postType.status === 'draft' &&
-                                                                <span className="publish ms-2">
-                                                                     | 
+                                                        {post.status === 'trash' ?
+                                                            <>
+                                                                <span className="edit">
+                                                                    <Link 
+                                                                        as="button"
+                                                                        method="put"
+                                                                        href={route('post.update.status', [post.post_type, post.id, 'draft'])}
+                                                                        className="text-primary mx-2"
+                                                                        style={{ fontSize: '13px' }}
+                                                                    >
+                                                                        Restore
+                                                                    </Link>
+                                                                    | 
+                                                                </span>
+                                                                <span className="trash ms-2">
                                                                     <Link
                                                                         as="button"
                                                                         method="put"
-                                                                        href={route('post.update.status', [post.id, 'publish'])}
-                                                                        className="text-primary ms-2"
+                                                                        href={route('post.update.status', [post.post_type, post.id, 'delete'])}
+                                                                        className="text-danger"
                                                                         style={{ fontSize: '13px' }}
                                                                         
                                                                     >
-                                                                        Publish
+                                                                    Delete Permanently
                                                                     </Link>
 
                                                                 </span>
-                                                            }
-                                                        </>
-                                                    }
-                                                    
+                                                            </>
+                                                            :
+                                                            <>
+                                                                <span className="edit">
+                                                                    <Link href={route('post.edit', [post.post_type, post.id])} className="text-primary mx-2"  style={{ fontSize: '13px' }}>
+                                                                        Edit
+                                                                    </Link>
+                                                                    | 
+                                                                </span>
+                                                                <span className="trash ms-2">
+                                                                    <Link
+                                                                        as="button"
+                                                                        method="put"
+                                                                        href={route('post.update.status', [post.post_type, post.id, 'trash'])}
+                                                                        className="text-danger"
+                                                                        style={{ fontSize: '13px' }}
+                                                                        
+                                                                    >
+                                                                        Trash
+                                                                    </Link>
+
+                                                                </span>
+                                                                {postType.status === 'draft' &&
+                                                                    <span className="publish ms-2">
+                                                                        | 
+                                                                        <Link
+                                                                            as="button"
+                                                                            method="put"
+                                                                            href={route('post.update.status', [post.id, 'publish'])}
+                                                                            className="text-primary ms-2"
+                                                                            style={{ fontSize: '13px' }}
+                                                                            
+                                                                        >
+                                                                            Publish
+                                                                        </Link>
+
+                                                                    </span>
+                                                                }
+                                                            </>
+                                                        }
+                                                    </div>
                                                 
                                                 </div>
                                             </td>
-                                            <td>{postType.slug}</td>
-                                            <td>{postType.slug}</td>
-                                            <td>{postType.slug}</td>
+                                            <td>{post.slug}</td>
+                                            <td>{post.author.name}</td>
+                                            <td>
+                                            {new Intl.DateTimeFormat('en-GB', {
+                                                day: '2-digit',
+                                                month: 'short',
+                                                year: 'numeric',
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                                second: '2-digit',
+                                                hour12: true, // Optional: for 12-hour format (AM/PM)
+                                            }).format(new Date(post.created_at))}
+                                            </td>
+
+
                                             
                                         </tr>
                                     ))}

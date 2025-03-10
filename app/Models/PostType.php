@@ -13,7 +13,7 @@ class PostType extends Model
      *  Specify the fillable attributes to allow mass assignment.
     **/
 
-    protected $fillable = ['title', 'slug', 'author', 'singular_name', 'supports', 'status', 'visibility', 'password', 'description'];
+    protected $fillable = ['title', 'slug', 'author', 'singular_name', 'supports', 'status', 'visibility', 'password', 'description', 'is_predefined'];
 
     // Define the relationship
     public function taxonomies()

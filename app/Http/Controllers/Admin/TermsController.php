@@ -205,12 +205,14 @@ class TermsController extends Controller
 
         if ($term && $term->attachmentData) {
             $term->attachment = [
-                'small_url' => asset('storage/' . $term->attachmentData->small_path),   
-                'thumb_url' => asset('storage/' . $term->attachmentData->thumb_path),   
-                'original_url' => asset('storage/' . $term->attachmentData->path),   
+                'original_url' => asset('storage/' . $term->attachmentData->file_path),
+                'featured_url' => $term->attchment_data->attachmentData ? asset('storage/' . $post->featured_path) : '',
+                'thumbnail_url' => $term->attchment_data->attachmentData ? asset('storage/' . $post->thumbnail_path) : '',
             ]; 
             unset($term->attachmentData);
         }
+
+      
         
         return Inertia::render('Admin/Terms/Edit', [
             'taxonomyData' => $taxonomyData,

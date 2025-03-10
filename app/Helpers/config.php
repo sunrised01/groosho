@@ -35,19 +35,28 @@ if (!function_exists('get_attchment')) {
             return $attchments;
         }
 
-        if (isset($file->small_path)) {
-            $attchments['small_url'] = asset('storage/' . $file->small_path);
-        }
-
-        if (isset($file->thumb_path)) {
-            $attchments['thumb_url'] = asset('storage/' . $file->thumb_path);
-        }
-
-        if (isset($file->path)) {
-            $attchments['original_url'] = asset('storage/' . $file->path);
-        }
+        $attchments = [
+            'original_url' => asset('storage/' . $file->file_path),
+            'featured_url' => $file->featured_path ? asset('storage/' . $file->featured_path) : '',
+            'thumbnail_url' => $file->thumbnail_path ? asset('storage/' . $file->thumbnail_path) : '',
+        ];
 
         return $attchments;
     }
 
+    if (!function_exists('get_permalink')) {
+
+        function get_permalink($slug='', $type = 'post')
+        {
+            $baseUrl = env('APP_URL');
+
+            switch ($type) {
+                case 'page':
+                    return route('page.show', ['slug' => $slug]);
+                case 'post':
+                default:
+                    return route('post.show', ['slug' => $slug]);
+            }
+        }
+    }
 }

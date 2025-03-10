@@ -1,17 +1,27 @@
 import React, { useEffect, useState } from "react";
 import AppLayout from '@/Pages/Admin/Layouts/AppLayout';
 import TextEditor from '@/Components/TextEditor';
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Head, useForm, Link, usePage } from '@inertiajs/react';
 import { FaChevronDown, FaChevronUp, FaEye, FaMapPin, FaCalendar } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import AttachmentSelector from '@/Components/Admin/AttachmentSelector';
 import { FaTimes } from 'react-icons/fa'; 
+import { AiFillEdit } from 'react-icons/ai';  
+import { Inertia } from '@inertiajs/inertia';  
 
 
 export default function Create() {
-    const { postType, errors, formData, users } = usePage().props;
+    const { postType, post, errors, users } = usePage().props;
     const current_user = usePage().props.auth.user;
-    const [featuredImage, setFeaturedImage] = useState(null);
+    const [featuredImage, setFeaturedImage] = useState(
+        post.attachment && post.attachment.thumbnail_url 
+          ? post.attachment.featured_url 
+          : post.attachment && post.attachment.original_url
+      );
+
+    const [isEditing, setIsEditing] = useState(false);
+    const [postSlug, setPostSlug] = useState(post.slug);
+      
     const [localErrors, setLocalErrors] = useState({});
     const [activeSections, setActiveSections] = useState({
         'sb-publish': true,
@@ -21,17 +31,17 @@ export default function Create() {
     const [isOpenVisibilityBox, setIsOpenVisibilityBox] = useState(false);
     
     // UseForm hook initialization
-    const { data, setData, post, processing, reset } = useForm({
-        title: formData?.title || "",
-        slug: formData?.slug || "",
-        content: formData?.content || "",
-        parent_id: formData?.parent_id || "", 
-        attachment_id: formData?.attachment_id || "", 
-        status: formData?.status || "publish", 
-        visibility: formData?.visibility || 'public',
-        author_id: formData?.author_id || current_user.id, 
+    const { data, setData, put, processing, reset } = useForm({
+        title: post?.title || "",
+        slug: post?.slug || "",
+        content: post?.content || "",
+        parent_id: post?.parent_id || "", 
+        attachment_id: post?.attachment_id || "", 
+        status: post?.status || "publish", 
+        visibility: post?.visibility || 'public',
+        author_id: post?.author_id || current_user.id, 
     });
-
+  
     const [visibility, setVisibility] = useState(data.visibility);
     const [status, setStatus] = useState(data.status);
 
@@ -68,7 +78,7 @@ export default function Create() {
     // Handle form submission
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route('post.store', postType.slug), {
+        put(route('post.update', [postType.slug, post.id]), {
             onFinish: () => {
                 // Optional reset logic (currently commented out)
                 // reset();
@@ -124,14 +134,28 @@ export default function Create() {
         setData('attachment_id', "");
 
     };
+
+    // Handle the pencil icon click to toggle the edit mode
+  const handleEditClick = () => {
+    setIsEditing(true);
+  };
+
+  // Handle the OK button click to save the new slug
+  const handleOkClick = () => {
+    setData(postSlug)
+    setIsEditing(false);
+    handleSubmit();
+  };
+
   
     return (
         <AppLayout>
-            <Head title={`Add ${postType.singular_name}`} />
+            <Head title={`Edit ${postType.singular_name}`} />
             {/* Page Header Section */}
             <div className="row mb-4">
                 <div className="col-12 d-flex align-items-center">
                     <h2 className="page-title mr-2">Create New {postType.slug}</h2>
+                    <Link className="btn btn-outline-primary" href={post.url}>View {postType.singular_name}</Link>
                 </div>
             </div>
 
@@ -171,7 +195,32 @@ export default function Create() {
                                                 value={data.title}
                                                 onChange={handleChange}
                                             />
-                                           
+                                            <div className="permalink-wrapper mt-2">
+                                                <div className=" d-flex align-items-center">URL: 
+                                                    <Link className="btn-link" href={post.url}>{post.url}</Link>
+                                                    {!isEditing && (
+                                                        <AiFillEdit
+                                                            style={{ cursor: 'pointer', marginLeft: '10px' }}  
+                                                            onClick={handleEditClick} 
+                                                        />
+                                                    )}
+                                                </div>
+                                                <div className="mt-2">
+                                                    {isEditing && (
+                                                        <div className="d-flex justify-align-between align-items-center">
+                                                            <input 
+                                                                type="text" 
+                                                                value={postSlug} 
+                                                                onChange={(e) => setPostSlug(e.target.value)} 
+                                                                placeholder="Enter Slug"
+                                                                className="form-control" 
+                                                            />
+                                                            <button className="btn btn-outline-primary ms-3" onClick={handleOkClick}>Save</button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            
                                         </div>
                                     </div>
                                 </div>
@@ -294,15 +343,44 @@ export default function Create() {
                                                         </>
                                                     )}
                                                 </div>
+                                                <div className="p-3">
+                                                    <div className="d-flex justify-content-between align-items-center">
+                                                        <span className="d-flex justify-content-between align-items-center"><FaCalendar className="me-2" />Publish at: <b className="text-capitalize ms-1">
+                                                        {new Intl.DateTimeFormat('en-GB', {
+                                                            day: '2-digit',
+                                                            month: 'short',
+                                                            year: 'numeric',
+                                                            hour: '2-digit',
+                                                            minute: '2-digit',
+                                                            second: '2-digit',
+                                                            hour12: true, // Optional: for 12-hour format (AM/PM)
+                                                        }).format(new Date(post.created_at))}
+                                                        </b></span>
+                                                        
+                                                    </div>
+                                                </div>
                                                 <div className="p-3 mt-5 pt-3 border-top bg-light">
                                                     <div className="d-flex justify-content-between align-items-center">
-                                                        <div></div>
+                                                    <div className="trash-btn">
+                                                            
+                                                        <Link
+                                                            as="button"
+                                                            method="put"
+                                                            href={route('post.update.status', [post.post_type, post.id, 'trash'])}
+                                                            className="text-danger"
+                                                            style={{ fontSize: '13px' }}
+                                                            
+                                                        >
+                                                            Move to Trash
+                                                        </Link>
+
+                                                        </div>
                                                         {/* Submit Button */}
                                                         <button type="submit" className="btn btn-outline-primary" disabled={processing}>
                                                             {processing ? (
                                                                 <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                                                             ) : (
-                                                                "Publish"
+                                                                "Update"
                                                             )}
                                                         </button>
                                                     </div>

@@ -21,6 +21,7 @@ return new class extends Migration
             $table->enum('visibility', ['public', 'private', 'protected'])->default('public'); 
             $table->text('description')->nullable();
             $table->string('password')->nullable();
+            $table->integer('is_predefined')->default(0);
             $table->timestamps();
         });
     }

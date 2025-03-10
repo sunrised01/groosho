@@ -8,7 +8,6 @@ import { toast } from 'react-toastify';
 
 
 export default function Files({ files,pagination }) {
-   
    const [uploadFiles, setUploadFiles] = useState([]);
    const [uploadProgress, setUploadProgress] = useState([]);
    const [fileList, setFileList] = useState(files); 
@@ -22,7 +21,6 @@ export default function Files({ files,pagination }) {
    const [currentPage] = useState(pagination.current_page);
    const [lastPage] = useState(pagination.last_page); 
 
-   
    // Handel input text change
    const handleInputChange = (event) => {
       const { name, value } = event.target; 
@@ -96,7 +94,7 @@ export default function Files({ files,pagination }) {
 
          setUploadProgress((prevProgress) => [
             ...prevProgress,
-            { file: file.name, progress: 0 }
+            { file: file.name, progress: 0, error: false }
          ]);
 
          xhr.upload.onprogress = (event) => {
@@ -104,7 +102,7 @@ export default function Files({ files,pagination }) {
                const progress = Math.round((event.loaded / event.total) * 100);
                setUploadProgress((prevProgress) => {
                   const updatedProgress = [...prevProgress];
-                  updatedProgress[index] = { file: file.name, progress };
+                  updatedProgress[index] = { file: file.name, progress, error: false };
                   return updatedProgress;
                });
             }
@@ -127,6 +125,11 @@ export default function Files({ files,pagination }) {
                   fileInputRef.current.value = ''; 
                }
             } else {
+               setUploadProgress((prevProgress) => {
+                  const updatedProgress = [...prevProgress];
+                  updatedProgress[index] = { file: file.name, progress: 100, error: true };
+                  return updatedProgress;
+               });
                alert(`Error uploading ${file.name}.`);
             }
          };
@@ -138,9 +141,9 @@ export default function Files({ files,pagination }) {
    // Open the modal with file details
    const handleImageClick = (file) => {      
       setSelectedFile(file);
-      setTitle(file.title);
-      setCaption(file.caption);
-      setDescription(file.description);
+      setTitle(file.title || '');
+      setCaption(file.caption || '');
+      setDescription(file.description || '');
      
    };
 
@@ -257,7 +260,9 @@ export default function Files({ files,pagination }) {
                         {uploadProgress.length > 0 && (
                            <div>
                               {uploadProgress.map((fileProgress, index) => (
-                                 <div key={index} className="progress-wrapper">
+                                 
+                                 <div key={index} className={fileProgress.error ? 'progress-wrapper failed-process' : 'progress-wrapper'}>
+                                    {console.log(fileProgress)}
                                     <p>{fileProgress.file}</p>
                                     <div className="progress">
                                        <div
@@ -285,10 +290,17 @@ export default function Files({ files,pagination }) {
                                        {file.mime_type.startsWith("image") ? (
                                           <div className="file-thumbnail" onClick={() => handleImageClick(file)}>
                                              <img
-                                                src={file.preview_url}
+                                                src={
+                                                   file.attachments.thumbnail_url
+                                                         ? file.attachments.thumbnail_url
+                                                         : file.attachments.featured_url
+                                                         ? file.attachments.featured_url
+                                                         : file.attachments.original_url
+                                                }
                                                 alt={file.name}
                                                 className="img-fluid rounded"
                                              />
+
                                           </div>
                                        ) : (
                                           <div className="file-icon fileicon" onClick={() => handleImageClick(file)}>
@@ -329,10 +341,17 @@ export default function Files({ files,pagination }) {
                                     <div className="row">
                                        <div className="col-md-4">
                                        {selectedFile.mime_type.startsWith("image") ? (
+                                         
                                           <img
-                                             src={selectedFile.preview_url}
+                                             src={
+                                                selectedFile.attachments.thumbnail_url
+                                                      ? selectedFile.attachments.thumbnail_url
+                                                      : selectedFile.attachments.featured_url
+                                                      ? selectedFile.attachments.featured_url
+                                                      : selectedFile.attachments.original_url
+                                             }
                                              alt={selectedFile.name}
-                                             className="img-fluid rounded mb-3"
+                                             className="img-fluid rounded"
                                              style={{ maxHeight: "300px", objectFit: "contain" }}
                                           />
                                        ) : (

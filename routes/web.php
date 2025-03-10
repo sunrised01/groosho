@@ -89,9 +89,15 @@ Route::prefix('admin')->middleware(['admin', AdminMiddleware::class])->group(fun
         // Post Management Routes (for handling different post types)
         Route::get('{post_type}', [PostController::class, 'index'])->name('post.index')->middleware('posttype.exists');  
         Route::get('{post_type}/create', [PostController::class, 'create'])->name('post.create');  
+        Route::post('{post_type}/store', [PostController::class, 'store'])->name('post.store');  
         Route::get('{post_type}/{post_id}/edit', [PostController::class, 'edit'])->name('post.edit'); 
         Route::put('{post_type}/{post_id}', [PostController::class, 'update'])->name('post.update');  
+        Route::put('{post_type}/{post_id}', [PostController::class, 'updateSlug'])->name('post.update.slug');  
         Route::delete('{post_type}/{post_id}', [PostController::class, 'destroy'])->name('post.destroy');  
+
+        Route::put('{post_type}/{post_id}/{status}', [PostController::class, 'updateStatus'])->name('post.update.status');
+        Route::post('{post_type}/{post_id}/bluk/{status}', [PostController::class, 'bulkAction'])->name('post.bulk.action');
+
     });
 
     Route::prefix('term')->group(function () {
@@ -103,8 +109,11 @@ Route::prefix('admin')->middleware(['admin', AdminMiddleware::class])->group(fun
         Route::delete('{taxonomy}/{term_id}/delete', [TermsController::class, 'destroy'])->name('term.delete');
         Route::post('{taxonomy}/bluk/delete', [TermsController::class, 'bulkDelete'])->name('term.bulk.delete');
     });
- 
 });
+
+Route::get('{slug}', [PostController::class, 'index'])->name('page.show');  
+Route::get('{slug}', [PostController::class, 'index'])->name('post.show');  
+
 
 // Routes for managing user profiles (auth middleware ensures user is logged in)
 Route::middleware('auth')->group(function () {

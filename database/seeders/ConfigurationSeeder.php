@@ -53,10 +53,10 @@ class ConfigurationSeeder extends Seeder
             'name' => $uniqueName,
             'author' => 1, 
             'file_size' => $fileSize,
-            'path' => $filePath,
+            'file_path' => $filePath,
+            'thumbnail_path' => null,
+            'featured_path' => null,
             'mime_type' => $fileType,
-            'small_path' => null,
-            'thumb_path' => null,
         ]);
 
         // Update the configuration with the file ID
