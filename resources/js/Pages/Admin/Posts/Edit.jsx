@@ -7,18 +7,18 @@ import { toast } from 'react-toastify';
 import AttachmentSelector from '@/Components/Admin/AttachmentSelector';
 import { FaTimes } from 'react-icons/fa'; 
 import { AiFillEdit } from 'react-icons/ai';  
-import { Inertia } from '@inertiajs/inertia';  
 
 
 export default function Create() {
-    const { postType, post, errors, users } = usePage().props;
+    const { postType, post, errors, users, flash } = usePage().props;
     const current_user = usePage().props.auth.user;
     const [featuredImage, setFeaturedImage] = useState(
         post.attachment && post.attachment.thumbnail_url 
           ? post.attachment.featured_url 
           : post.attachment && post.attachment.original_url
       );
-
+      
+    const [successMessage, setSuccessMessage] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [postSlug, setPostSlug] = useState(post.slug);
       
@@ -58,7 +58,6 @@ export default function Create() {
             setData('visibility', visibility);
             setIsOpenVisibilityBox(false);
         }
-       
     }
 
     // Toggle a specific section's state (open/close)
@@ -85,11 +84,6 @@ export default function Create() {
             },
         });
     };
-
-    // Effect to update errors when they change
-    useEffect(() => {
-        setLocalErrors(errors);
-    }, [errors]);
 
     const removeError = (key) => {
         const newErrors = { ...localErrors };
@@ -122,8 +116,6 @@ export default function Create() {
             ? selectedFile.attachments.thumbnail_url
             : selectedFile.attachments.original_url
 
-            console.log(file_url);
-   
             setFeaturedImage(file_url);
             setData('attachment_id', selectedFile.id);
         }
@@ -136,18 +128,35 @@ export default function Create() {
     };
 
     // Handle the pencil icon click to toggle the edit mode
-  const handleEditClick = () => {
-    setIsEditing(true);
-  };
+    const handleEditClick = () => {
+        setIsEditing(true);
+    };
 
-  // Handle the OK button click to save the new slug
-  const handleOkClick = () => {
-    setData(postSlug)
-    setIsEditing(false);
-    handleSubmit();
-  };
+    const removeSuccessMessage = () => {
+        setSuccessMessage(null);
+    };
 
-  
+
+    // Handle the OK button click to save the new slug
+    const handleOkClick = () => {
+        setData(postSlug)
+    };
+
+    const handelContentChange = (pagecontent) => {
+        setData('content', pagecontent);
+    }
+
+    useEffect(() => {
+        setLocalErrors(errors);            
+        setIsEditing(false);                
+        if (flash?.success) {
+            setSuccessMessage(flash.success);   
+        } else {
+            setSuccessMessage(''); 
+        }
+    }, [errors, flash]);
+    
+
     return (
         <AppLayout>
             <Head title={`Edit ${postType.singular_name}`} />
@@ -158,7 +167,17 @@ export default function Create() {
                     <Link className="btn btn-outline-primary" href={post.url}>View {postType.singular_name}</Link>
                 </div>
             </div>
-
+            {successMessage && 
+                <div className="alert alert-primary alert-dismissible fade show">
+                    <button
+                        type="button"
+                        className="btn-close"
+                        aria-label="Close"
+                        onClick={removeSuccessMessage}
+                    ></button>
+                    <p className="m-0">{successMessage}</p>
+                </div>
+            }
             {/* Display Error Messages */}
             {Object.keys(localErrors).length > 0 && (
                 <div>
@@ -196,8 +215,8 @@ export default function Create() {
                                                 onChange={handleChange}
                                             />
                                             <div className="permalink-wrapper mt-2">
-                                                <div className=" d-flex align-items-center">URL: 
-                                                    <Link className="btn-link" href={post.url}>{post.url}</Link>
+                                                <div className=" d-flex align-items-center"><strong>URL:</strong> 
+                                                    <Link className="btn-link ms-2" href={post.url}>{post.url}</Link>
                                                     {!isEditing && (
                                                         <AiFillEdit
                                                             style={{ cursor: 'pointer', marginLeft: '10px' }}  
@@ -215,7 +234,17 @@ export default function Create() {
                                                                 placeholder="Enter Slug"
                                                                 className="form-control" 
                                                             />
-                                                            <button className="btn btn-outline-primary ms-3" onClick={handleOkClick}>Save</button>
+                                                           
+
+                                                            <Link
+                                                                method="put"
+                                                                href={route('post.update.slug', {post_type: post.post_type, post_id: post.id, slug: postSlug})}
+                                                                onClick={handleOkClick}
+                                                                className="btn btn-outline-primary ms-3"
+                                                            >
+                                                            OK
+                                                            </Link>
+
                                                         </div>
                                                     )}
                                                 </div>
@@ -227,7 +256,7 @@ export default function Create() {
                                 <div className="card mb-4">
                                     <div className="card-body">
                                         <div className="form-fields">
-                                            <TextEditor />
+                                            <TextEditor onContentChange={handelContentChange} editorContent={data.content} post_id={post.id} />
                                         </div>
                                     </div>
                                 </div>

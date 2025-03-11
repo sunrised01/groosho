@@ -197,7 +197,6 @@ class PostController extends Controller
 
             $post->update([
                 'title' => $request->title,
-                'slug' => $request->slug,
                 'author_id' => $request->author_id,
                 'excerpt' => $request->excerpt,
                 'content' => $request->content,
@@ -230,9 +229,122 @@ class PostController extends Controller
         }
     }
 
-    
-    public function destroy($postType, $post)
+    public function updateSlug(Request $request, $post_type, $post_id)
     {
-       
+        try {
+            $request->validate([
+                'slug' => 'required|string|unique:posts,slug,' . $post_id
+            ],
+            [
+                'slug.unique' => 'The "'.$request->slug.'" Slug is already used in the system, Try with a different one.',
+            ]);
+        
+            $post = Posts::findOrFail($post_id);
+            
+            $post->slug = $request->slug;
+            $post->save();
+            
+            return redirect()->route('post.edit', [$post_type, $post_id])->with('success', 'Slug has been updated successfully!');
+            
+        } catch (\Illuminate\Validation\ValidationException $e) {
+           
+            return redirect()->route('post.edit', [$post_type, $post_id])->withErrors($e->errors());
+            
+        } catch (\Exception $e) {
+            if (App::environment('production')) {
+                $error = 'An error occurred while updating the '.$post_type.'. Please try again.';
+                Log::error('Error updating '.$post_type.': ' . $e->getMessage());
+            } else {
+                $error = 'Error: ' . $e->getMessage();
+            }
+            return redirect()->route('post.edit', [$post_type, $post_id])
+                 ->withErrors(['general' => $error]);
+        }
     }
+
+     
+    public function updateStatus(Request $request, $post_type, $post_id, $status)
+    {
+        try {
+            $validStatuses = ['publish', 'draft', 'trash', 'delete'];
+            
+            if (!in_array($status, $validStatuses)) {
+                return redirect()->back()->with('error', 'Invalid status provided.');
+            }
+            
+            $post = Posts::findOrFail($post_id);
+            $referer = $request->headers->get('referer');
+
+            if ($status == 'delete') {
+                $post->delete();
+                $message = $post_type.' successfully deleted';
+            } elseif ($status == 'trash') {
+                $post->status = $status;
+                $post->save();
+                $message = $post_type.' successfully moved to trash';
+            } elseif ($status == 'publish') {
+                $post->status = $status;
+                $post->save();
+                $message = $post_type.' has been published';
+            } elseif ($status == 'draft') {
+                $post->status = $status;
+                $post->save();
+                $message = $post_type.' has been restored from trash';
+            }  
+            
+            if (strpos($referer, route('post.edit', [$post_type, $post->id ])) !== false) {
+                return redirect()->route('post.index', $post_type)->with('success', $message);
+            } else {
+                return back()->with('success', $message);
+            }
+
+
+        } catch (\Exception $e) {
+            if (App::environment('production')) {
+                $error = 'An error occurred while moving the post to trash. Please try again.';
+                Log::error('PostType Error: ' . $e->getMessage());
+            } else {
+                $error = 'Error: ' . $e->getMessage();
+            }
+            return redirect()->back()->with('error', $error);
+        }
+    }
+
+   
+    public function bulkAction(Request $request, $status)
+    {
+        try {
+            if ($request->query('ids') == null) {
+                return redirect()->back()->with('error', 'No IDs selected.');
+            }
+            $ids = explode(',', $request->query('ids')); 
+            
+            
+            if ($status == 'delete_permanently') {
+                PostType::whereIn('id', $ids)->delete();
+                $message = 'Selected post type successfully deleted';
+            } else if ($status == 'move_to_trash') {
+                PostType::whereIn('id', $ids)->update(['status' => 'trash']);
+                $message = 'Selected post type successfully moved to trash';
+            }
+            else if ($status == 'restore') {
+                PostType::whereIn('id', $ids)->update(['status' => 'draft']);
+                $message = 'Selected post type has been restored from trash';
+            }
+
+            return redirect()->back()->with('success', $message);
+
+        } catch (\Exception $e) {
+            if (App::environment('production')) {
+                $error = 'An error occurred while processing the request. Please try again.';
+                Log::error('PostType Error: ' . $e->getMessage());
+            } else {
+                $error = 'Error: ' . $e->getMessage();
+            }
+
+            return redirect()->back()->with('error', $error);
+        }
+    }
+
+
 }

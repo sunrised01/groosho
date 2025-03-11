@@ -1,0 +1,119 @@
+.block-editor .layout-navbar.bg-navbar-theme {
+	background-color: #0c0d0e !important;
+	width: 100%;
+	border-radius: 0;
+}
+.btn-publish {
+	border: 1px solid #fff;
+	border-radius: 4px;
+	font-weight: bold;
+	padding: 8px 17px;
+}
+.btn-publish:hover {
+	color: #000;
+}
+.editor-widgets-header h2 {
+	width: 100%;
+	text-align: center;
+	font-size: 17px;
+	margin: 0;
+	color: #000;
+}
+.editor-widgets-header {
+	border-bottom: 1px solid #dedede;
+}
+
+.widgets-list ul {
+    list-style-type: none; 
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 20px; 
+}
+
+.widget-items h6 {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.widget-items ul li {
+    display: flex;
+    flex-direction: column; 
+    align-items: center; 
+    padding: 20px;
+    margin: 0;
+    border: 1px solid #ddd; 
+    border-radius: 8px; 
+    background-color: #f8f9fa; 
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
+    transition: background-color 0.3s, box-shadow 0.3s; 
+    width: 100%; 
+    text-align: center; 
+    cursor: pointer;
+}
+
+.widget-items ul li:hover {
+    background-color: #e9ecef;
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+}
+
+.widget-icon {
+    color: #6c757d; 
+    margin-bottom: 10px; 
+    font-size: 24px; 
+}
+
+.widget-items ul li h6 {
+    font-size: 16px;
+    font-weight: bold;
+    margin: 0;
+}
+
+.widget-items ul li p {
+    margin: 0;
+    font-size: 14px; 
+    color: #6c757d;
+}
+
+/* row container that takes full width */
+.row-container {
+    width: 100%; /* Full width of its parent container */
+    padding: 20px;
+    border: 2px dotted #007bff; /* Dotted border */
+    display: flex; /* Use flexbox to center the icon */
+    justify-content: center; /* Horizontally center */
+    align-items: center; /* Vertically center */
+    height: 200px; /* Set a fixed height for the box */
+    margin-top: 20px; /* Add some space on top */
+    background-color: #f8f9fa; /* Light background color */
+    border-radius: 8px; /* Optional: Add rounded corners for styling */
+}
+
+/* Plus icon styling */
+.plus-icon-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+}
+
+.plus-icon {
+    color: #007bff; /* Blue color for the plus icon */
+    cursor: pointer; /* Change cursor to pointer when hovering over the icon */
+    transition: color 0.3s ease; /* Smooth color transition on hover */
+}
+
+.plus-icon:hover {
+    color: #0056b3; /* Darker blue on hover */
+}
+
+.content-wrapper.editor-content-wrapper {
+	width: 77%;
+	float: left;
+}
+.editor-left-sidebar {
+	width: 23%;
+	float: left;
+}

@@ -13,6 +13,8 @@ use App\Http\Controllers\Admin\CptController;
 use App\Http\Controllers\Admin\PostTypeController;
 use App\Http\Controllers\Admin\TaxonomiesController;
 use App\Http\Controllers\Admin\TermsController;
+use App\Http\Controllers\Admin\BlockEditorController;
+
 use App\Http\Middleware\AdminMiddleware;
 
 // Public Route: Home Page
@@ -92,8 +94,7 @@ Route::prefix('admin')->middleware(['admin', AdminMiddleware::class])->group(fun
         Route::post('{post_type}/store', [PostController::class, 'store'])->name('post.store');  
         Route::get('{post_type}/{post_id}/edit', [PostController::class, 'edit'])->name('post.edit'); 
         Route::put('{post_type}/{post_id}', [PostController::class, 'update'])->name('post.update');  
-        Route::put('{post_type}/{post_id}', [PostController::class, 'updateSlug'])->name('post.update.slug');  
-        Route::delete('{post_type}/{post_id}', [PostController::class, 'destroy'])->name('post.destroy');  
+        Route::put('{post_type}/{post_id}/update-slug', [PostController::class, 'updateSlug'])->name('post.update.slug');  
 
         Route::put('{post_type}/{post_id}/{status}', [PostController::class, 'updateStatus'])->name('post.update.status');
         Route::post('{post_type}/{post_id}/bluk/{status}', [PostController::class, 'bulkAction'])->name('post.bulk.action');
@@ -109,7 +110,12 @@ Route::prefix('admin')->middleware(['admin', AdminMiddleware::class])->group(fun
         Route::delete('{taxonomy}/{term_id}/delete', [TermsController::class, 'destroy'])->name('term.delete');
         Route::post('{taxonomy}/bluk/delete', [TermsController::class, 'bulkDelete'])->name('term.bulk.delete');
     });
+
+    Route::get('block-editor/{id}', [BlockEditorController::class, 'index'])->name('blockeditor');  
+    
 });
+
+
 
 Route::get('{slug}', [PostController::class, 'index'])->name('page.show');  
 Route::get('{slug}', [PostController::class, 'index'])->name('post.show');  
