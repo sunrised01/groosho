@@ -115,6 +115,7 @@ Route::prefix('admin')->middleware(['admin', AdminMiddleware::class])->group(fun
     
 });
 
+Route::get('block-editor/{id}/preview', [BlockEditorController::class, 'preview'])->name('page.preview');  
 
 
 Route::get('{slug}', [PostController::class, 'index'])->name('page.show');  

@@ -1,61 +1,37 @@
-import React, { useState, useEffect } from "react";
-import { Inertia } from '@inertiajs/inertia'; 
-import Dropdown from '@/Components/Dropdown';
+import React, { useState, useRef } from "react";
+import { Head, usePage } from '@inertiajs/react';
+import { FaElementor, FaPlus, FaCog, FaEye, FaSearch, FaBox, FaTextWidth, FaHeading, FaImage, FaVideo, FaSlidersH } from "react-icons/fa";
 import BlockEditorLayout from '@/Pages/Admin/Layouts/BlockEditorLayout';
-import { Head, Link, usePage } from '@inertiajs/react';
-import Pagination from '@/Components/Pagination';
-import { toast } from 'react-toastify';
-import { FaElementor, FaPlus, FaCog, FaEye, FaSearch, FaBox, FaTextWidth, FaHeading, FaImage, FaVideo, FaRegHandPointer, FaSlidersH, FaMapMarkedAlt, FaRegWindowMaximize } from "react-icons/fa";
 
 export default function Index() {
-    // State to manage rows and their widgets
-    const [rows, setRows] = useState([]);
+    const { post } = usePage().props;
+    const iframeRef = useRef(null);
+    const [widgets, setWidgets] = useState([]);
 
-    // Handle the drag start for li items
     const handleDragStart = (e, widgetType) => {
         e.dataTransfer.setData("widgetType", widgetType);
     };
 
-    // Handle drop event to create a new row
     const handleDrop = (e) => {
         e.preventDefault();
         const widgetType = e.dataTransfer.getData("widgetType");
+        console.log(widgetType);
+        const newWidget = { type: widgetType, id: Date.now() };
+        setWidgets((prevWidgets) => [...prevWidgets, newWidget]);
 
-        if (widgetType) {
-            // Create a new row with the widget type
-            const newRow = {
-                id: Date.now(),
-                widgets: [{ id: Date.now(), widgetType }],
-            };
-
-            setRows((prev) => [...prev, newRow]);
+        if (iframeRef.current) {
+            iframeRef.current.contentWindow.postMessage(newWidget, "*");
         }
     };
 
-    // Prevent default to allow drop
-    const handleDragOver = (e) => {
-        e.preventDefault();
+    const handleIframeLoad = () => {
+        const iframeDocument = iframeRef.current.contentDocument || iframeRef.current.contentWindow.document;
+        if (iframeDocument) {
+            iframeDocument.addEventListener('drop', handleDrop);
+            iframeDocument.addEventListener('dragover', (e) => e.preventDefault());
+        }
     };
-
-    // Handle adding widgets to a specific row
-    const handleAddWidgetToRow = (rowId, widgetType) => {
-        const newRow = rows.map((row) => {
-            if (row.id === rowId) {
-                return {
-                    ...row,
-                    widgets: [
-                        ...row.widgets,
-                        { id: Date.now(), widgetType },
-                    ],
-                };
-            }
-            return row;
-        });
-
-        setRows(newRow);
-    };
-
-
+    //console.log(widgets);
     return (
         <BlockEditorLayout>
             <Head title="Edit With Block Editor" />
@@ -88,32 +64,20 @@ export default function Index() {
                             <header className="editor-widgets-header">
                                 <h2>Widgets</h2>
                             </header>
-
                             <div className="nav-item p-3">
                                 <div className="d-flex align-items-center position-relative">
                                     <FaSearch size={25} className="search-icon position-absolute ps-3" />
-                                    <input
-                                        type="text"
-                                        className="form-control border-1 shadow-none ps-10"
-                                        placeholder="Search..."
-                                        aria-label="Search..."
-                                    />
+                                    <input type="text" className="form-control border-1 shadow-none ps-10" placeholder="Search..." aria-label="Search..." />
                                 </div>
                             </div>
                             <div className="widgets-list">
                                 <div className="widget-items p-3">
                                     <h6>Layout</h6>
                                     <ul>
-                                        <li
-                                            draggable
-                                            onDragStart={(e) => handleDragStart(e, 'Container')}
-                                        >
-                                            <FaBox size={16} className="widget-icon" /> Container
+                                        <li draggable onDragStart={(e) => handleDragStart(e, 'Row')}>
+                                            <FaBox size={16} className="widget-icon" /> Row
                                         </li>
-                                        <li
-                                            draggable
-                                            onDragStart={(e) => handleDragStart(e, 'Grid')}
-                                        >
+                                        <li draggable onDragStart={(e) => handleDragStart(e, 'Grid')}>
                                             <FaSlidersH size={16} className="widget-icon" /> Grid
                                         </li>
                                     </ul>
@@ -121,28 +85,16 @@ export default function Index() {
                                 <div className="widget-items p-3">
                                     <h6>Basic</h6>
                                     <ul>
-                                        <li
-                                            draggable
-                                            onDragStart={(e) => handleDragStart(e, 'TextEditor')}
-                                        >
+                                        <li draggable onDragStart={(e) => handleDragStart(e, 'TextEditor')}>
                                             <FaTextWidth size={16} className="widget-icon" /> Text Editor
                                         </li>
-                                        <li
-                                            draggable
-                                            onDragStart={(e) => handleDragStart(e, 'Heading')}
-                                        >
+                                        <li draggable onDragStart={(e) => handleDragStart(e, 'Heading')}>
                                             <FaHeading size={16} className="widget-icon" /> Heading
                                         </li>
-                                        <li
-                                            draggable
-                                            onDragStart={(e) => handleDragStart(e, 'Image')}
-                                        >
+                                        <li draggable onDragStart={(e) => handleDragStart(e, 'Image')}>
                                             <FaImage size={16} className="widget-icon" /> Image
                                         </li>
-                                        <li
-                                            draggable
-                                            onDragStart={(e) => handleDragStart(e, 'Video')}
-                                        >
+                                        <li draggable onDragStart={(e) => handleDragStart(e, 'Video')}>
                                             <FaVideo size={16} className="widget-icon" /> Video
                                         </li>
                                     </ul>
@@ -150,37 +102,13 @@ export default function Index() {
                             </div>
                         </aside>
 
-                        <div className="content-wrapper editor-content-wrapper" >
-                            {/* Render the created containers */}
-                            <div className="container flex-grow-1 container-p-y">
-                                {rows.map((row) => (
-                                    <div key={row.id} className="row">
-                                        {row.widgets.map((widget) => (
-                                            <div key={widget.id} className="widget-item">
-                                                <h3>{widget.widgetType}</h3>
-                                            </div>
-                                        ))}
-
-                                        <div
-                                            className="plus-icon-container"
-                                            onClick={() => handleAddWidgetToRow(row.id, 'TextEditor')}
-                                        >
-                                            <FaPlus size={30} className="plus-icon" />
-                                        </div>
-                                    </div>
-                                ))}
-
-                                <div 
-                                className="row-container" 
-                                onDrop={handleDrop}
-                                onDragOver={handleDragOver}
-                                >
-                                    
-                                    <div className="plus-icon-container">
-                                        <FaPlus size={30} className="plus-icon" />
-                                    </div>
-                                </div>
-                            </div>
+                        <div className="content-wrapper editor-content-wrapper">
+                            <iframe 
+                                src={route('page.preview', post.id)} 
+                                style={{ width: '100%', height: '100%', border: 'none' }}
+                                ref={iframeRef}
+                                onLoad={handleIframeLoad} // Trigger after iframe load
+                             />
                         </div>
                     </div>
                 </div>

@@ -4,8 +4,6 @@ import '../../../../assets/admin/css/core.css';
 import '../../../../assets/admin/css/theme-default.css';
 import '../../../../assets/admin/css/style.css';
 import '../../../../assets/admin/css/block-editor.css';
-import Navbar from '@/Components/Admin/Navbar';
-import Sidebar from '@/Components/Admin/Sidebar';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import NProgress from "nprogress";  

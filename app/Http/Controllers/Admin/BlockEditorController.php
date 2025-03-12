@@ -10,14 +10,26 @@ use Inertia\Inertia;
 
 class BlockEditorController extends Controller
 {
-    public function index(Request $request, $id)
+    public function index(Request $request, $post_id)
     {
-        $post = Posts::find($id);
+        $post = Posts::find($post_id);
         if (!$post) {
             abort(404, 'Post not found');
         }
 
         return Inertia::render('Admin/BlockEditor/Index', [
+            'post' => $post,
+        ]);
+    }
+
+    public function preview(Request $request, $post_id)
+    {
+        $post = Posts::find($post_id);
+        if (!$post) {
+            abort(404, 'Post not found');
+        }
+
+        return Inertia::render('Admin/BlockEditor/Preview', [
             'post' => $post,
         ]);
     }

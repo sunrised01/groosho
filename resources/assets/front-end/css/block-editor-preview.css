@@ -1,0 +1,162 @@
+body{
+    background-color: #fff;
+}
+
+/* row container that takes full width */
+.blockedidor-add-row-section {
+    width: 100%; 
+    padding: 20px;
+    border: 2px dotted #007bff;
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    height: 200px;
+    margin-top: 20px; 
+    background-color: #f8f9fa;
+    border-radius: 8px; 
+}
+
+.plus-icon-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 50px; 
+    width: 50px;  
+}
+
+.blockedidor-add-row-section {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+.blockedidor-title {
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: auto; 
+    width: 100%;
+}
+
+.blockedidor-title p {
+	font-size: 14px;
+	font-style: italic;
+}
+
+.plus-icon {
+    color: #007bff;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    font-size: 30px; 
+}
+
+.plus-icon:hover {
+    color: #0056b3;
+}
+
+.full-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 90vh;
+}
+
+.content {
+    flex: 1;
+}
+
+.blockeditor-section-wrap {
+    position: relative;
+    margin-bottom: 20px; 
+}
+
+.blockeditor-elements {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.blockeditor-inner-elements {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+}
+
+.blockeditor-overlay-elements {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 21px;
+	display: none;
+	justify-content: center;
+	align-items: center;
+	z-index: 10;
+}
+
+.blockeditor-inner-elements:hover + .blockeditor-overlay-elements {
+    display: flex; 
+}
+
+
+.blockeditor-element-settings {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.blockeditor-element-settings li {
+    margin: 5px;
+    cursor: pointer;
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.blockeditor-element-settings li:hover {
+    transform: scale(1.1);
+    color: #00aaff; 
+}
+
+
+.blockeditor-empty-view {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.blockeditor-first-add {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100px; 
+    width: 100%;
+    border: 1px dashed #ddd; 
+    border-radius: 5px;
+}
+
+.blockeditor-first-add .blockeditor-icon {
+    font-size: 30px; 
+    color: #007bff; 
+    cursor: pointer;
+}
+
+.blockeditor-first-add .blockeditor-icon:hover {
+    color: #0056b3; 
+}
+
+.blockeditor-elements:hover {
+    border: 1px solid #00aaff; 
+}
+
+
+.blockeditor-elements:hover .blockeditor-overlay-elements {
+	display: block;
+}

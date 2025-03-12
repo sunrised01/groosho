@@ -12,6 +12,10 @@
 .btn-publish:hover {
 	color: #000;
 }
+.editor-content-wrapper {
+	height: 100%;
+    padding: 0px 30px;
+}
 .editor-widgets-header h2 {
 	width: 100%;
 	text-align: center;
