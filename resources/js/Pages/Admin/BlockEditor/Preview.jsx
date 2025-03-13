@@ -32,16 +32,8 @@ export default function Preview() {
     }, []);
 
 
-    const handleRowDrop = (draggedItem, droppedItemId) => {
-        console.log('draggedItem', draggedItem);
-        
-        setWidgets((prevWidgets) => {
-            const updatedWidgets = prevWidgets.filter(widget => widget.id !== droppedItemId);
-    
-            updatedWidgets.push(draggedItem);
-    
-            return updatedWidgets;
-        });
+    const handleRowDrop = (updatedWidgets) => {        
+        setWidgets(updatedWidgets);
     };
     
 
@@ -49,7 +41,7 @@ export default function Preview() {
         return widgets.map((item) => {
             switch (item.type) {
                 case 'Row':
-                    return <Row key={item.id} item={item} onDropRowHandler={handleRowDrop} />;
+                    return <Row key={item.id} item={item} widgets={widgets} onDropRowHandler={handleRowDrop} />;
                 case 'Grid':
                     return <Grid key={item.id} id={item.id} />;
                 case 'TextEditor':
@@ -66,7 +58,7 @@ export default function Preview() {
         });
         
     };
-
+    
     return (
         <PreviewLayout>
             <Head title={post.title} />
@@ -79,9 +71,7 @@ export default function Preview() {
                     <div className="plus-icon-container">
                         <FaPlus size={30} className="plus-icon" />
                     </div>
-                    <div className="blockedidor-title text-center">
-                        <p>Drag widget here</p>
-                    </div>
+                   
                 </section>
             </div>
         </PreviewLayout>

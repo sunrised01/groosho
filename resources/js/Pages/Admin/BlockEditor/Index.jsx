@@ -7,21 +7,25 @@ export default function Index() {
     const { post } = usePage().props;
     const iframeRef = useRef(null);
     const [widgets, setWidgets] = useState([]);
+    const [dragging, setDragging] = useState(false); // State to manage drag state
 
     const handleDragStart = (e, widgetType) => {
         e.dataTransfer.setData("widgetType", widgetType);
+        setDragging(true); // Start dragging, show the drop area
     };
 
     const handleDrop = (e) => {
         e.preventDefault();
         const widgetType = e.dataTransfer.getData("widgetType");
-        console.log(widgetType);
+       // console.log('widgetType: ', widgetType);
         const newWidget = { type: widgetType, id: Date.now() };
         setWidgets((prevWidgets) => [...prevWidgets, newWidget]);
 
         if (iframeRef.current) {
             iframeRef.current.contentWindow.postMessage(newWidget, "*");
         }
+
+        setDragging(false); // Reset drag state after drop
     };
 
     const handleIframeLoad = () => {
@@ -31,6 +35,7 @@ export default function Index() {
             iframeDocument.addEventListener('dragover', (e) => e.preventDefault());
         }
     };
+
     //console.log(widgets);
     return (
         <BlockEditorLayout>
@@ -107,8 +112,40 @@ export default function Index() {
                                 src={route('page.preview', post.id)} 
                                 style={{ width: '100%', height: '100%', border: 'none' }}
                                 ref={iframeRef}
-                                onLoad={handleIframeLoad} // Trigger after iframe load
-                             />
+                            />
+                            {dragging ? 
+                                <div
+                                    className={`drop-zone dragged`}
+                                    style={{ 
+                                        height: '93px',
+                                        position: 'absolute',
+                                        bottom: '34px',
+                                        width: '94%',
+                                        textAlign: 'center',
+                                        padding: '39px 0',
+                                    }}
+                                    onDrop={handleDrop}
+                                    onDragOver={(e) => e.preventDefault()}
+                                >
+                                    Drop here to add widget
+                                </div>
+                            :
+                            <div
+                                className={`drop-zone`}
+                                style={{ 
+                                    height: '93px',
+                                    position: 'absolute',
+                                    bottom: '34px',
+                                    width: '94%',
+                                    textAlign: 'center',
+                                    padding: '39px 0',
+                                }}
+                             
+                            >
+                                Drop here to add widget
+                            </div>
+                            }
+                            
                         </div>
                     </div>
                 </div>
