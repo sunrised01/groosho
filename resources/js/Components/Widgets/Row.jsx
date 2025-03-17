@@ -33,20 +33,22 @@ export default function Row({ item, widgets, onDropRowHandler }) {
    const handleRowDrop = (e, position, itemid) => {
       e.preventDefault();
       const widgetType = e.dataTransfer.getData("widgetType");
-      const id = e.dataTransfer.getData("id");
-      const newWidget = { type: widgetType, id: id };
+      const dragid = Number(e.dataTransfer.getData("id"));
+      const action = e.dataTransfer.getData("action");
+      const colNum = e.dataTransfer.getData("colNum");
+      
+      const newWidget = { type: widgetType, id: dragid, colNum: colNum, action: action };
 
       const updatedWidgets = [...widgets];
-      // Remove the existing record with the same id if it exists
-      const indexToRemove = updatedWidgets.findIndex(widget => widget.id === id);
+     
+      const indexToRemove = updatedWidgets.findIndex(widget => widget.id === dragid);
+      
       if (indexToRemove !== -1) {
-         updatedWidgets.splice(indexToRemove, 1); // Remove the widget
+         updatedWidgets.splice(indexToRemove, 1); 
       }
-         // Now, find the index of the item where the new widget should be placed
+    
       const index = updatedWidgets.findIndex(widget => widget.id === itemid);
-      console.log('Item to be inserted at index:', index);
-
-
+    
       if (index !== -1) {
          if (position === "before") {
             updatedWidgets.splice(index, 0, newWidget); 
@@ -55,14 +57,56 @@ export default function Row({ item, widgets, onDropRowHandler }) {
          }
       }
       
-      console.log(updatedWidgets);
-      // Update the state with the new widgets array
+     
       onDropRowHandler(updatedWidgets);
       setRowDragging(false);
       setIsTop(false); 
       setShowDropZone(false);
    };
 
+   const handleInnerDrop = (e, itemid) => {
+      e.preventDefault();
+      
+      const widgetType = e.dataTransfer.getData("widgetType");
+      const id = Date.now();  
+      const action = e.dataTransfer.getData("action");
+      const colNum = e.dataTransfer.getData("colNum");
+      
+      const newWidget = { type: widgetType, id: id, colNum: colNum, action: action };
+    
+      let isAdded = false;
+      
+      const updatedWidgets = [...widgets];
+      
+      const addWidgetRecursive = (widgetList) => {
+        widgetList.forEach((widget) => {
+          if (widget.innerElements && widget.innerElements.length > 0) {
+            const indexToUpdateInInner = widget.innerElements.findIndex(innerWidget => innerWidget.id === itemid);
+            
+            if (indexToUpdateInInner !== -1) {
+              addWidgetRecursive(widget.innerElements);
+    
+            } else {
+              addWidgetRecursive(widget.innerElements);
+            }
+          } else {
+            if (widget.id === itemid) {
+              widget.innerElements = widget.innerElements || [];  
+              widget.innerElements.push(newWidget); 
+              isAdded = true;
+            }
+          }
+        });
+      };
+    
+      addWidgetRecursive(updatedWidgets);
+    
+      if (isAdded) {
+        onDropRowHandler(updatedWidgets);
+        console.log('Updated Widgets:', updatedWidgets);
+      }
+   };
+    
    const handleDragOver = (e) => {
       e.preventDefault();
    };
@@ -70,6 +114,70 @@ export default function Row({ item, widgets, onDropRowHandler }) {
    const handleDragLeave = (e) => {
       e.preventDefault();
       setShowDropZone(false);
+   };
+
+   const handleRemoveRow = (itemId) => {
+      const updatedWidgets = [...widgets];
+     
+      const indexToRemove = updatedWidgets.findIndex(widget => widget.id === itemId);
+      
+      if (indexToRemove !== -1) {
+         updatedWidgets.splice(indexToRemove, 1); 
+      }
+      onDropRowHandler(updatedWidgets);
+
+   }
+
+   const handleAddRow = (itemId) => {
+      const updatedWidgets = [...widgets];
+
+      const index = updatedWidgets.findIndex(widget => widget.id === itemId);
+      
+      if (index !== -1) {
+         const newWidget = { type: 'Row', id: Date.now(), colNum: 1, action: true  };
+         if (index === 0) {
+            updatedWidgets.splice(index, 0, newWidget); 
+         }
+         else{
+            updatedWidgets.splice(index - 1, 0, newWidget); 
+         }
+         onDropRowHandler(updatedWidgets);
+      }
+
+   }
+
+   const handleEditSection = (itemId) => {
+      const updatedWidgets = [...widgets];  
+      updatedWidgets.forEach(widget => {
+        widget.action = false;
+      });
+    
+      const indexToUpdate = updatedWidgets.findIndex(widget => widget.id === itemId);
+    
+      if (indexToUpdate !== -1) {
+        updatedWidgets[indexToUpdate].action = true;
+      }
+    
+      onDropRowHandler(updatedWidgets);
+    };
+    
+    const renderInnerElements = (innerElements) => {
+      return innerElements.map((innerItem) => {
+         return (
+            <div className={innerItem.action == true ? "blockeditor-col-elements active" : "blockeditor-col-elements"} >
+               {innerItem.innerElements ?
+                         renderInnerElements(innerItem.innerElements)
+                     :
+                  <div className="blockeditor-first-add" onDrop={(e) => handleInnerDrop(e, innerItem.id)}>
+                     <div className="blockeditor-icon" >
+                        <FaPlus size={12} color="#9da5ae" className="plus-icon" />
+                     </div>
+                  </div>
+               }
+                  
+            </div>
+         )
+      });
    };
 
    const isDraggable = widgets.length > 1;
@@ -94,28 +202,43 @@ export default function Row({ item, widgets, onDropRowHandler }) {
             onDragStart={(e) => handleRowDragStart(e, 'Row', item.id)}
             onDragOver={handleRowDragOver}
          >
-            <div className="blockeditor-elements">
+            <div className={item.action == true ? "blockeditor-elements active" : "blockeditor-elements"} >
                <div className="blockeditor-overlay-elements">
                   <ul className="blockeditor-element-settings justify-aligen-center">
-                     <li className="blockeditor-element-add" title="Add Container">
-                        <FaPlus size={12} color="#444" aria-hidden="true" />
+                     <li 
+                        className="blockeditor-element-add" 
+                        title="Add Row"
+                        onClick={() => handleAddRow(item.id)}>
+                           <FaPlus size={12} color="#444" aria-hidden="true" />
                      </li>
-                     <li className="blockeditor-element-edit" title="Edit Container">
+                     <li 
+                     className="blockeditor-element-edit" 
+                     title="Edit Row"
+                     onClick={() => handleEditSection(item.id)}>
                         <FaGripHorizontal size={12} color="#444" aria-hidden="true" />
                      </li>
-                     <li className="blockeditor-element-remove" title="Delete Container">
-                        <FaTimes size={12} color="#444" aria-hidden="true" />
+                     <li 
+                     className="blockeditor-element-remove" 
+                     title="Delete Row" 
+                     onClick={() => handleRemoveRow(item.id)}>
+                           <FaTimes size={12} color="#444" aria-hidden="true" />
                      </li>
+
                   </ul>
                </div>
                <div className="blockeditor-inner-elements">
                   <div className="blockeditor-empty-view">
-                     <div className="blockeditor-first-add">
-                        <div className="blockeditor-icon">
-                           <h1>Drag Item : {item.type} - {item.id}</h1>
-                           <FaPlus size={15} color="#9da5ae" className="plus-icon" />
+                     {item.innerElements ?
+                         renderInnerElements(item.innerElements)
+                     :
+                     <div className="blockeditor-first-add" onDrop={(e) => handleInnerDrop(e, item.id)}>
+                        <div className="blockeditor-icon" >
+                           <FaPlus size={12} color="#9da5ae" className="plus-icon" />
                         </div>
                      </div>
+                    
+                     }
+                     
                   </div>
                </div>
             </div>

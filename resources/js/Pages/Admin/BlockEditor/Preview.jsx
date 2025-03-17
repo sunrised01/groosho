@@ -32,11 +32,11 @@ export default function Preview() {
     }, []);
 
 
-    const handleRowDrop = (updatedWidgets) => {        
+    const handleRowDrop = (updatedWidgets) => { 
         setWidgets(updatedWidgets);
     };
-    
 
+    
     const renderLayout = () => {
         return widgets.map((item) => {
             switch (item.type) {
@@ -71,7 +71,11 @@ export default function Preview() {
                     <div className="plus-icon-container">
                         <FaPlus size={30} className="plus-icon" />
                     </div>
-                   
+                    <div
+                        className={`drop-zone`}
+                    >
+                        Drop here to add widget
+                    </div>
                 </section>
             </div>
         </PreviewLayout>

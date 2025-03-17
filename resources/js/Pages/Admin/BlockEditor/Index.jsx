@@ -7,34 +7,44 @@ export default function Index() {
     const { post } = usePage().props;
     const iframeRef = useRef(null);
     const [widgets, setWidgets] = useState([]);
-    const [dragging, setDragging] = useState(false); // State to manage drag state
+    const [dragging, setDragging] = useState(false); 
+    const [selectedGridLayout, setSelectedGridLayout] = useState(false);
 
-    const handleDragStart = (e, widgetType) => {
+  const toggleGridLayout = () => {
+    setSelectedGridLayout((prev) => !prev);
+  };
+
+    const handleDragStart = (e, widgetType, colNum) => {
         e.dataTransfer.setData("widgetType", widgetType);
+        e.dataTransfer.setData("colNum", colNum);
         setDragging(true); // Start dragging, show the drop area
     };
 
     const handleDrop = (e) => {
         e.preventDefault();
         const widgetType = e.dataTransfer.getData("widgetType");
-       // console.log('widgetType: ', widgetType);
-        const newWidget = { type: widgetType, id: Date.now() };
+        const colNum = e.dataTransfer.getData("colNum");
+        const newWidget = { type: widgetType, id: Date.now(), 'colNum': colNum, 'action': true };
         setWidgets((prevWidgets) => [...prevWidgets, newWidget]);
 
         if (iframeRef.current) {
             iframeRef.current.contentWindow.postMessage(newWidget, "*");
         }
-
-        setDragging(false); // Reset drag state after drop
+        setDragging(false); 
     };
 
-    const handleIframeLoad = () => {
-        const iframeDocument = iframeRef.current.contentDocument || iframeRef.current.contentWindow.document;
-        if (iframeDocument) {
-            iframeDocument.addEventListener('drop', handleDrop);
-            iframeDocument.addEventListener('dragover', (e) => e.preventDefault());
-        }
-    };
+    // const handleIframeLoad = () => {
+    //     const iframeDocument = iframeRef.current.contentDocument || iframeRef.current.contentWindow.document;
+    //     if (iframeDocument) {
+    //         iframeDocument.addEventListener('drop', handleDrop);
+    //         iframeDocument.addEventListener('dragover', (e) => e.preventDefault());
+    //     }
+    // };
+
+    // const onEditHandler = (itemId, widgetType) => {
+    //     console.log('itemId', itemId);
+    //     console.log('widgetType', widgetType);
+    // }
 
     //console.log(widgets);
     return (
@@ -79,27 +89,50 @@ export default function Index() {
                                 <div className="widget-items p-3">
                                     <h6>Layout</h6>
                                     <ul>
-                                        <li draggable onDragStart={(e) => handleDragStart(e, 'Row')}>
+                                        <li draggable onDragStart={(e) => handleDragStart(e, 'Row', 1)}>
                                             <FaBox size={16} className="widget-icon" /> Row
                                         </li>
-                                        <li draggable onDragStart={(e) => handleDragStart(e, 'Grid')}>
+                                        <li className="click-action" onClick={toggleGridLayout}>
                                             <FaSlidersH size={16} className="widget-icon" /> Grid
                                         </li>
                                     </ul>
+
+                                    {selectedGridLayout && (
+                                        <div className="grid-layout-options">
+                                            <h6>Select Grid Columns</h6>
+                                            <div className="grid-layouts">
+                                                <div className="row-wraper col-2-row" draggable onDragStart={(e) => handleDragStart(e, 'Grid', 2)}>
+                                                {[1, 2].map((i) => (
+                                                    <div className="inner-cols" key={i}>{i} Col</div>
+                                                ))}
+                                                </div>
+                                                <div className="row-wraper  col-3-row" draggable onDragStart={(e) => handleDragStart(e, 'Grid', 3)}>
+                                                {[1, 2, 3].map((i) => (
+                                                    <div className="inner-cols" key={i}>{i} Col</div>
+                                                ))}
+                                                </div>
+                                                <div className="row-wraper  col-4-row" draggable onDragStart={(e) => handleDragStart(e, 'Grid', 4)}>
+                                                {[1, 2, 3, 4].map((i) => (
+                                                    <div className="inner-cols" key={i}>{i} Col</div>
+                                                ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="widget-items p-3">
                                     <h6>Basic</h6>
                                     <ul>
-                                        <li draggable onDragStart={(e) => handleDragStart(e, 'TextEditor')}>
+                                        <li draggable onDragStart={(e) => handleDragStart(e, 'TextEditor', 1)}>
                                             <FaTextWidth size={16} className="widget-icon" /> Text Editor
                                         </li>
-                                        <li draggable onDragStart={(e) => handleDragStart(e, 'Heading')}>
+                                        <li draggable onDragStart={(e) => handleDragStart(e, 'Heading', 1)}>
                                             <FaHeading size={16} className="widget-icon" /> Heading
                                         </li>
-                                        <li draggable onDragStart={(e) => handleDragStart(e, 'Image')}>
+                                        <li draggable onDragStart={(e) => handleDragStart(e, 'Image', 1)}>
                                             <FaImage size={16} className="widget-icon" /> Image
                                         </li>
-                                        <li draggable onDragStart={(e) => handleDragStart(e, 'Video')}>
+                                        <li draggable onDragStart={(e) => handleDragStart(e, 'Video', 1)}>
                                             <FaVideo size={16} className="widget-icon" /> Video
                                         </li>
                                     </ul>
@@ -113,37 +146,34 @@ export default function Index() {
                                 style={{ width: '100%', height: '100%', border: 'none' }}
                                 ref={iframeRef}
                             />
-                            {dragging ? 
+                            <div
+                                    className={`drop-zone dragged`}
+                                    style={{ 
+                                        position: "absolute",
+                                        bottom: "55px",
+                                        width: "94%",
+                                        textAlign: "center",
+                                        padding: "123px 0 25px 0",
+                                    }}
+                                    onDrop={handleDrop}
+                                    onDragOver={(e) => e.preventDefault()}
+                                ></div>
+                            {dragging && 
                                 <div
                                     className={`drop-zone dragged`}
                                     style={{ 
-                                        height: '93px',
-                                        position: 'absolute',
-                                        bottom: '34px',
-                                        width: '94%',
-                                        textAlign: 'center',
-                                        padding: '39px 0',
+                                        position: "absolute",
+                                        bottom: "55px",
+                                        width: "94%",
+                                        textAlign: "center",
+                                        padding: "123px 0 25px 0",
                                     }}
                                     onDrop={handleDrop}
                                     onDragOver={(e) => e.preventDefault()}
                                 >
-                                    Drop here to add widget
+                                   
                                 </div>
-                            :
-                            <div
-                                className={`drop-zone`}
-                                style={{ 
-                                    height: '93px',
-                                    position: 'absolute',
-                                    bottom: '34px',
-                                    width: '94%',
-                                    textAlign: 'center',
-                                    padding: '39px 0',
-                                }}
-                             
-                            >
-                                Drop here to add widget
-                            </div>
+                           
                             }
                             
                         </div>

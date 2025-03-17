@@ -54,6 +54,9 @@
     transition: background-color 0.3s, box-shadow 0.3s; 
     width: 100%; 
     text-align: center; 
+    cursor: move;
+}
+.widget-items ul li.click-action{
     cursor: pointer;
 }
 
@@ -120,4 +123,28 @@
 .editor-left-sidebar {
 	width: 23%;
 	float: left;
+}
+
+.row-wraper {
+	margin: 10px 0;
+	cursor: move;
+}
+.inner-cols {
+	border: 1px solid #dedede;
+	text-align: center;
+	display: inline-block;
+	padding: 13px;
+	margin: 1px;
+	font-size: 13px;
+	background: #f8f9fa;
+    border-radius: 2px;
+}
+.col-4-row .inner-cols {
+	width: 24.2%;
+}
+.col-3-row .inner-cols {
+	width: 32.6%;
+}
+.col-2-row .inner-cols {
+	width: 49.2%;
 }
