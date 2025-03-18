@@ -17,36 +17,54 @@ export default function Index() {
     const handleDragStart = (e, widgetType, colNum) => {
         e.dataTransfer.setData("widgetType", widgetType);
         e.dataTransfer.setData("colNum", colNum);
-        setDragging(true); // Start dragging, show the drop area
+        setDragging(true); 
     };
 
+    const generateUniqueId = () => {
+        return Date.now() + Math.floor(Math.random() * 1000);
+    };
+    
     const handleDrop = (e) => {
         e.preventDefault();
+    
         const widgetType = e.dataTransfer.getData("widgetType");
         const colNum = e.dataTransfer.getData("colNum");
-        const newWidget = { type: widgetType, id: Date.now(), 'colNum': colNum, 'action': true };
+        let newWidget = {};
+    
+        if (widgetType === "Grid") {
+            newWidget = { type: "Grid", id: generateUniqueId(), action: true };
+            
+            newWidget.innerElements = Array.from({ length: colNum }, () => ({
+                type: "Column",
+                id: generateUniqueId(),
+                action: false,
+            }));
+        } else {
+            newWidget = { type: widgetType, id: generateUniqueId(), action: true };
+            
+            if (widgetType !== "Row") {
+                newWidget.innerElements = [{
+                    type: widgetType,
+                    id: generateUniqueId(),
+                    action: false,
+                }];
+            }
+        }
+    
         setWidgets((prevWidgets) => [...prevWidgets, newWidget]);
-
+    
         if (iframeRef.current) {
             iframeRef.current.contentWindow.postMessage(newWidget, "*");
         }
         setDragging(false); 
     };
 
-    // const handleIframeLoad = () => {
-    //     const iframeDocument = iframeRef.current.contentDocument || iframeRef.current.contentWindow.document;
-    //     if (iframeDocument) {
-    //         iframeDocument.addEventListener('drop', handleDrop);
-    //         iframeDocument.addEventListener('dragover', (e) => e.preventDefault());
-    //     }
-    // };
+    // useEffect(() => {
+        
+    // }, []);
 
-    // const onEditHandler = (itemId, widgetType) => {
-    //     console.log('itemId', itemId);
-    //     console.log('widgetType', widgetType);
-    // }
+    console.log('widgets', widgets);
 
-    //console.log(widgets);
     return (
         <BlockEditorLayout>
             <Head title="Edit With Block Editor" />

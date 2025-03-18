@@ -126,7 +126,7 @@ body{
     align-items: center;
 }
 
-.blockeditor-first-add {
+.blockeditor-inner-drop{
     display: flex;
     justify-content: center;
     align-items: center;
@@ -136,13 +136,13 @@ body{
     border-radius: 5px;
 }
 
-.blockeditor-first-add .blockeditor-icon {
+.blockeditor-inner-drop .blockeditor-icon {
     font-size: 30px; 
     color: #007bff; 
     cursor: pointer;
 }
 
-.blockeditor-first-add .blockeditor-icon:hover {
+.blockeditor-inner-drop .blockeditor-icon:hover {
     color: #0056b3; 
 }
 
@@ -168,13 +168,13 @@ body{
 	display: block;
 }
 .blockeditor-col-elements {
-    border: 2px solid #959494;
     width: 100%;
     padding: 8px;
     position: relative; 
+    margin: 0 3px;
   }
-  
-  .blockeditor-col-elements::before {
+
+  .col-box-icon{
     content: ''; 
     position: absolute; 
     top: 0; 
@@ -186,5 +186,49 @@ body{
     box-sizing: border-box; 
     box-shadow: inset 0 0 0 4px white; 
     cursor: pointer;
+    display: none;
+  }
+
+  .blockeditor-inner-elements:hover .col-box-icon, .blockeditor-col-elements.active .col-box-icon {
+    display: block;
   }
   
+  .blockeditor-col-elements.active, .blockeditor-heading-element.active, .blockeditor-row-container.active {
+	border: 2px solid #959494;
+}
+.blockeditor-inner-elements:hover .blockeditor-col-elements, .blockeditor-inner-elements:hover .blockeditor-heading-element, .blockeditor-row-container{
+    border: 2px solid #959494;
+
+}
+.blockeditor-heading-element, .blockeditor-text-editor-element {
+	padding: 10px 14px;
+    width: 100%;
+}
+.blockeditor-inner-dropper {
+	background: rgba(255, 0, 0, 0.1);
+	height: 10px;
+	border-radius: 2px;
+}
+.blockeditor-inner-elements.grid-row {
+	display: flex;
+}
+
+.blockeditor-first-add{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100px; 
+    width: 100%;
+    border: 1px dashed #ddd; 
+    border-radius: 5px;
+}
+
+.blockeditor-first-add .blockeditor-icon {
+    font-size: 30px; 
+    color: #007bff; 
+    cursor: pointer;
+}
+
+.blockeditor-first-add .blockeditor-icon:hover {
+    color: #0056b3; 
+}

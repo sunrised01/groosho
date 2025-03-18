@@ -17,44 +17,46 @@ export default function Preview() {
     useEffect(() => {
         const handleMessage = (event) => {
             if (event.origin !== window.location.origin) return; 
+    
             const newWidget = event.data;
-
+    
             if (newWidget) {
-                setWidgets((prevWidgets) => [...prevWidgets, newWidget]);
+                setWidgets((prevWidgets) => {
+                    const oldWidgets = [...prevWidgets];
+                    updateActionToFalse(oldWidgets);
+                    return [...oldWidgets, newWidget];
+                });
             }
         };
-
+    
         window.addEventListener('message', handleMessage);
-
+    
         return () => {
             window.removeEventListener('message', handleMessage);
         };
     }, []);
+    
 
 
     const handleRowDrop = (updatedWidgets) => { 
         setWidgets(updatedWidgets);
     };
 
+    function updateActionToFalse(array) {
+        array.forEach(item => {
+        if (item.hasOwnProperty('action')) {
+           item.action = false;
+        }
+     
+        if (item.innerElements && Array.isArray(item.innerElements)) {
+           updateActionToFalse(item.innerElements); 
+        }
+        });
+     }
     
     const renderLayout = () => {
         return widgets.map((item) => {
-            switch (item.type) {
-                case 'Row':
-                    return <Row key={item.id} item={item} widgets={widgets} onDropRowHandler={handleRowDrop} />;
-                case 'Grid':
-                    return <Grid key={item.id} id={item.id} />;
-                case 'TextEditor':
-                    return <TextEditor key={item.id} id={item.id} />;
-                case 'Heading':
-                    return <Heading key={item.id} id={item.id} />;
-                case 'Image':
-                    return <Image key={item.id} id={item.id} />;
-                case 'Video':
-                    return <Video key={item.id} id={item.id} />;
-                default:
-                    return null;
-            }
+            return <Row key={item.id} item={item} widgets={widgets} onDropRowHandler={handleRowDrop} />;
         });
         
     };
