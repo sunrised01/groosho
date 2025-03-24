@@ -148,3 +148,50 @@
 .col-2-row .inner-cols {
 	width: 49.2%;
 }
+
+.body-content {
+	z-index: 0;
+}
+.block-editor .layout-navbar.bg-navbar-theme{
+    z-index: 1;
+}
+.icon-link.btn-link:hover {
+	background: transparent;
+}
+.icon-link.btn-link {
+	color: #fff;
+}
+
+
+.tooltip-btn {
+    position: relative; 
+  }
+  
+  .tooltip-text {
+    visibility: hidden;
+    position: absolute;
+    bottom: -39px; 
+    left: 50%;
+    transform: translateX(-50%); 
+    background-color: #333;
+    color: #fff;
+    text-align: left;
+    border-radius: 4px;
+    padding: 10px 12px;
+    font-size: 14px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    white-space: nowrap;
+    display: inline-block; 
+    min-width: 100px; 
+    text-overflow: ellipsis; 
+    overflow: hidden; 
+    font-weight: bold;
+  }
+  
+  .tooltip-btn:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+  }
+  

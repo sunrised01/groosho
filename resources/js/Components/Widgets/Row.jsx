@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { FaPlus, FaGripHorizontal, FaTimes, FaSquare } from 'react-icons/fa';
+import { FaPlus, FaGripHorizontal, FaTimes } from 'react-icons/fa';
 
-export default function Row({ item, widgets, onDropRowHandler }) {
+export default function Row({ item, widgets, onDropRowHandler, onEditActionHandler }) {
    const [dragging, setRowDragging] = useState(false);
    const [isTop, setIsTop] = useState(false);
    const [showDropZone, setShowDropZone] = useState(false);
@@ -164,6 +164,7 @@ export default function Row({ item, widgets, onDropRowHandler }) {
       updateActionToFalse(updatedWidgets);
       setActionToTrue(updatedWidgets, itemId);
       onDropRowHandler(updatedWidgets);
+      onEditActionHandler(item);
 
    };
 

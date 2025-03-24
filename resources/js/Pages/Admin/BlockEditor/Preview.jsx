@@ -13,8 +13,11 @@ import { FaPlus} from "react-icons/fa";
 export default function Preview() {
     const { post } = usePage().props;
     const [widgets, setWidgets] = useState([]);
+    const [editWidget, setEditWidget] = useState(null);
 
     useEffect(() => {
+        window.parent.postMessage(editWidget, '*');
+
         const handleMessage = (event) => {
             if (event.origin !== window.location.origin) return; 
     
@@ -34,7 +37,7 @@ export default function Preview() {
         return () => {
             window.removeEventListener('message', handleMessage);
         };
-    }, []);
+    });
     
 
 
@@ -53,10 +56,14 @@ export default function Preview() {
         }
         });
      }
+
+    const handleEditAction = (widgetItem) => {
+        setEditWidget(widgetItem);
+     }
     
     const renderLayout = () => {
         return widgets.map((item) => {
-            return <Row key={item.id} item={item} widgets={widgets} onDropRowHandler={handleRowDrop} />;
+            return <Row key={item.id} item={item} widgets={widgets} onDropRowHandler={handleRowDrop} onEditActionHandler={handleEditAction} />;
         });
         
     };
