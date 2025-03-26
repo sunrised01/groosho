@@ -1,370 +1,162 @@
-import React, { useState } from "react";
-import { FaPlus, FaGripHorizontal, FaTimes } from 'react-icons/fa';
+import React, { useState } from 'react';
+import { FaRegWindowMaximize, FaPaintBrush, FaCog, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 
-export default function Row({ item, widgets, onDropRowHandler, onEditActionHandler }) {
-   const [dragging, setRowDragging] = useState(false);
-   const [isTop, setIsTop] = useState(false);
-   const [showDropZone, setShowDropZone] = useState(false);
-   const [dragId, setDragId] = useState(null);
-   const [activeDropZone, setActiveDropZone] = useState(null);
+export default function Row({  widget }) {
 
-   const handleRowDragStart = (e, widgetType, id) => {
-      e.dataTransfer.setData("widgetType", widgetType);
-      e.dataTransfer.setData('id', id);
-      setRowDragging(true);
-   };
+   console.log('widget', widget);
 
-   const handleRowDragOver = (e) => {
-      e.preventDefault();
-      setShowDropZone(true);
-      const drag_id = e.dataTransfer.getData("id");
-      setDragId(drag_id);
+   const [activeTab, setActiveTab] = useState('Layout');
+   const [activeSections, setActiveSections] = useState({
+         'tb-container': true,
+   });
 
-      const rect = e.target.getBoundingClientRect();
-      const offset = e.clientY - rect.top;
+   const [layoutFieldsData, setLayoutFieldsData] = useState({
+      containerWidth: "full",  
+      width: "",              
+      height: "",            
+   });
 
-      if (offset < rect.height / 2) {
-         setIsTop(true);
-      } else {
-         setIsTop(false);
-      }
-   };
+   // Handle form value changes and update widget data
+   const handleLayoutInputChange = (e) => {
+      const { name, value } = e.target;
 
-   const handleRowDrop = (e, position, itemid) => {
-      e.preventDefault();
-      const widgetType = e.dataTransfer.getData("widgetType");
-      const dragid = Number(e.dataTransfer.getData("id"));
-      const action = e.dataTransfer.getData("action");
+      setLayoutFieldsData(prevState => {
+         const newLayoutFieldsData = { ...prevState, [name]: value };
+         // setWidgetData(prevData => ({
+         //    ...prevData,
+         //    layout_fields_data: JSON.stringify(newLayoutFieldsData)
+         // }));
 
-      const newWidget = { type: widgetType, id: dragid, action: action };
-
-      const updatedWidgets = [...widgets];
-
-      const indexToRemove = updatedWidgets.findIndex(widget => widget.id === dragid);
-
-      if (indexToRemove !== -1) {
-         updatedWidgets.splice(indexToRemove, 1);
-      }
-
-      const index = updatedWidgets.findIndex(widget => widget.id === itemid);
-
-      if (index !== -1) {
-         if (position === "before") {
-            updatedWidgets.splice(index, 0, newWidget);
-         } else {
-            updatedWidgets.splice(index + 1, 0, newWidget);
-         }
-      }
-
-      onDropRowHandler(updatedWidgets);
-      setRowDragging(false);
-      setIsTop(false);
-      setShowDropZone(false);
-   };
-
-   const handleInnerDrop = (e, itemid) => {
-      e.preventDefault();
-
-      const widgetType = e.dataTransfer.getData("widgetType");
-      const id = Date.now();
-      const action = true;
-
-      const newWidget = { type: widgetType, id: id, action: action };
-
-      let isAdded = false;
-
-      const updatedWidgets = [...widgets];
-
-      updateActionToFalse(updatedWidgets);
-
-      const addWidgetRecursive = (widgetList) => {
-         widgetList.forEach((widget) => {
-            if (widget.innerElements) {
-               const indexToUpdateInInner = widget.innerElements.findIndex(innerWidget => innerWidget.id === itemid);
-
-               if (indexToUpdateInInner !== -1) {
-                  if (widget.innerElements[indexToUpdateInInner].type === "Row" || widget.innerElements[indexToUpdateInInner].type === "Column") {
-                     addWidgetRecursive(widget.innerElements);
-                  } else {
-                     widget.innerElements.push(newWidget);
-                  }
-               } else {
-                  addWidgetRecursive(widget.innerElements);
-               }
-            } else {
-               if (widget.id === itemid) {
-                  widget.innerElements = widget.innerElements || [];
-                  widget.innerElements.push(newWidget);
-                  isAdded = true;
-               }
-            }
-         });
-      };
-
-      addWidgetRecursive(updatedWidgets);
-
-      if (isAdded) {
-         onDropRowHandler(updatedWidgets);
-      }
-      setActiveDropZone(null);
-   };
-
-   function updateActionToFalse(array) {
-      array.forEach(item => {
-         if (item.hasOwnProperty('action')) {
-            item.action = false;
-         }
-
-         if (item.innerElements && Array.isArray(item.innerElements)) {
-            updateActionToFalse(item.innerElements);
-         }
-      });
-   }
-
-   const handleDragOver = (e) => {
-      e.preventDefault();
-   };
-
-   const handleDragLeave = (e) => {
-      e.preventDefault();
-      setShowDropZone(false);
-   };
-
-   const handleRemoveRow = (itemId) => {
-      const updatedWidgets = [...widgets];
-
-      const indexToRemove = updatedWidgets.findIndex(widget => widget.id === itemId);
-
-      if (indexToRemove !== -1) {
-         updatedWidgets.splice(indexToRemove, 1);
-      }
-
-      onDropRowHandler(updatedWidgets);
-   };
-
-   const handleAddRow = (itemId) => {
-      const updatedWidgets = [...widgets];
-
-      const index = updatedWidgets.findIndex(widget => widget.id === itemId);
-
-      if (index !== -1) {
-         const newWidget = { type: 'Row', id: Date.now(), action: true };
-         if (index === 0) {
-            updatedWidgets.splice(index, 0, newWidget);
-         } else {
-            updatedWidgets.splice(index - 1, 0, newWidget);
-         }
-         onDropRowHandler(updatedWidgets);
-      }
-   };
-
-   const handleEditItem = (item) => {
-      const itemId = item.id;
-      const updatedWidgets = [...widgets];
-      updateActionToFalse(updatedWidgets);
-      setActionToTrue(updatedWidgets, itemId);
-      onDropRowHandler(updatedWidgets);
-      onEditActionHandler(item);
-
-   };
-
-   const setActionToTrue = (widgetList, itemId) => {
-      widgetList.forEach((widget) => {
-      if (widget.id === itemId) {
-         widget.action = true; 
-      }
-   
-      if (widget.innerElements && widget.innerElements.length > 0) {
-         setActionToTrue(widget.innerElements, itemId); 
-      }
+         return newLayoutFieldsData;
       });
    };
-   
-   const handleInnerItemDragOver = (e, innerItem) => {
-      e.preventDefault();
-      setActiveDropZone(innerItem.id);
+
+   const handleLayoutSelectChange = (e) => {
+      const { name, value } = e.target;
+
+      setLayoutFieldsData(prevState => {
+         const newLayoutFieldsData = { ...prevState, [name]: value };
+         // setWidgetData(prevData => ({
+         //    ...prevData,
+         //    layout_fields_data: JSON.stringify(newLayoutFieldsData) 
+         // }));
+
+         return newLayoutFieldsData;
+      });
    };
 
-   const renderInnerElements = (innerElements) => {
-      return innerElements.map((innerItem) => {
+  // Toggle a specific section's state (open/close)
+  const toggleItem = (index) => {
+      setActiveSections(prevState => ({
+         ...prevState,
+         [index]: !prevState[index],
+      }));
+   };
 
-         return (
-            innerItem.type === "Row" ? (
-               <div
-                  key={innerItem.id}
-                  className={innerItem.action === true ? "blockeditor-row-container active" : "blockeditor-row-container"}
-               >
-                  {innerItem.innerElements ?
-                     renderInnerElements(innerItem.innerElements) :
-                     <div className="blockeditor-inner-drop" onDrop={(e) => handleInnerDrop(e, innerItem.id)}>
-                        <div className="blockeditor-icon">
-                           <FaPlus size={12} color="#9da5ae" className="plus-icon" />
-                        </div>
+   console.log(layoutFieldsData);
+
+   const renderTabContent = () => {
+      switch (activeTab) {
+        case 'Layout':
+          return <div className="widgets-content">
+               <div key="tb-container" className="accordion-item m-0">
+                     <div className="accordion-header d-flex justify-content-start align-items-center" onClick={() => toggleItem("tb-container")}>
+                        <h3>Container</h3>
+                        {activeSections["tb-container"] ? (
+                           <FaChevronUp className="ms-2" />
+                        ) : (
+                           <FaChevronDown className="ms-2" />
+                        )}
                      </div>
-                  }
-               </div>
-            ) : innerItem.type === "Column" ? (
-               <div
-                  key={innerItem.id}
-                  className={innerItem.action === true ? "blockeditor-col-elements active" : "blockeditor-col-elements"}
-                  
-               >
-                  <div className="col-box-icon" onClick={() => handleEditItem(innerItem)}></div>
-                  {innerItem.innerElements ?
-                     renderInnerElements(innerItem.innerElements) :
-                     <div className="blockeditor-inner-drop" onDrop={(e) => handleInnerDrop(e, innerItem.id)}>
-                        <div className="blockeditor-icon">
-                           <FaPlus size={12} color="#9da5ae" className="plus-icon" />
+                     <hr className="m-0" />
+                     {activeSections["tb-container"] && (
+                        <div className="accordion-content ">
+                           <div className="mb-4 d-flex justify-content-between align-items-center">
+                              <label className="col-form-label me-10">Container Width</label>
+                              <select className="form-select" name="containerWidth" value={layoutFieldsData.containerWidth} onChange={handleLayoutSelectChange}>
+                                 <option value="box">Box</option>
+                                 <option value="full">Full With</option>
+                              </select>
+                             
+                           </div>
+                           <div className="mb-4 d-flex justify-content-between align-items-center">
+                              <label className="col-form-label  me-10">Width</label>
+                              <input className="form-control me-1" type="number" placeholder="100" min="1" max="100" step="1" name="width" value={layoutFieldsData.width} onChange={handleLayoutInputChange} />
+                              <select
+                                 className="form-select unit-field"
+                                 name="width_unit"
+                                 value="%"
+                                 onChange={handleLayoutInputChange} 
+                              >
+                                 <option value="%">%</option>
+                                 <option value="px">px</option>
+                                 <option value="em">em</option>
+                                 <option value="rem">rem</option>
+                              </select>
+                           </div>
+                           <div className="mb-4 d-flex justify-content-between align-items-center">
+                              <label className="col-form-label me-10">Hieght</label>
+                              <input className="form-control me-1" type="number" placeholder="100" min="1" max="100" step="1" name="height" value={layoutFieldsData.height} onChange={handleLayoutInputChange}/>
+                              <select
+                                 className="form-select unit-field"
+                                 name="height_unit"
+                                 value="px"
+                                 onChange={handleLayoutInputChange}  
+                              >
+                                 <option value="%">%</option>
+                                 <option value="px">px</option>
+                                 <option value="em">em</option>
+                                 <option value="rem">rem</option>
+                              </select>
+                           </div>
                         </div>
-                     </div>
-                  }
+                     )}
                </div>
-            ) : innerItem.type === "Heading" ? (
-               <div
-                  key={innerItem.id}
-                  className={innerItem.action === true ? "blockeditor-heading-element active" : "blockeditor-heading-element"}
-                  onClick={() => handleEditItem(innerItem)}
-                  onDragOver={(e) => handleInnerItemDragOver(e, innerItem)}
-               >
-                  <h1 className="inner-dragger" >This is a heading</h1>
-                  {activeDropZone === innerItem.id && (
-                     <div className="blockeditor-inner-dropper" onDrop={(e) => handleInnerDrop(e, innerItem.id)}></div>
-                  )}
-               </div>
-            ) : innerItem.type === "TextEditor" ? (
-               <div
-                  key={innerItem.id}
-                  className={innerItem.action === true ? "blockeditor-text-editor-element active" : "blockeditor-text-editor-element"}
-                  onClick={() => handleEditItem(innerItem)}
-                  onDragOver={(e) => handleInnerItemDragOver(e, innerItem)}
-               >
-                  <p>This is sample Paragraph</p>
-                  {activeDropZone === innerItem.id && (
-                     <div className="blockeditor-inner-dropper" onDrop={(e) => handleInnerDrop(e, innerItem.id)}></div>
-                  )}
-               </div>
-            ) : innerItem.type === "Video" ? (
-               <div
-                  key={innerItem.id}
-                  className={innerItem.action === true ? "blockeditor-video-element active" : "blockeditor-video-element"}
-                  onClick={() => handleEditItem(innerItem)}
-                  onDragOver={(e) => handleInnerItemDragOver(e, innerItem)}
-               >
-                  <video controls>
-                     <source src={innerItem.type} type="video/mp4" />
-                     Your browser does not support the video tag.
-                  </video>
-                  {activeDropZone === innerItem.id && (
-                     <div className="blockeditor-inner-dropper" onDrop={(e) => handleInnerDrop(e, innerItem.id)}></div>
-                  )}
-               </div>
-            ) : (
-               <div key={innerItem.id} className="blockeditor-default-element">
-                  <h1>Unknown type: {innerItem.type}</h1>
-               </div>
-            )
-         );
-      });
+          </div>;
+        case 'Style':
+          return <div className="widgets-content">Content for Style</div>;
+        case 'Advanced':
+          return <div className="widgets-content">Content for Advanced</div>;
+        default:
+          return <div className="widgets-content">Content for Layout</div>;
+      }
    };
 
-   const isDraggable = widgets.length > 1;
    return (
       <>
-         {showDropZone && dragId && dragId !== item.id && isTop && (
-            <div
-               className="row-drop-zone"
-               onDrop={(e) => handleRowDrop(e, "before", item.id)}
-               onDragLeave={handleDragLeave}
-               onDragOver={handleRowDragOver}
-            />
-         )}
+         <header className="editor-widgets-header">
+               <h2>Edit Row</h2>
+         </header>
 
-         <div
-            id={`blockeditor-${item.id}`}
-            className={`blockeditor-section-wrap ${dragging ? "dragging" : ""}`}
-            draggable={isDraggable}
-            onDragStart={(e) => handleRowDragStart(e, 'Row', item.id)}
-            onDragOver={handleRowDragOver}
-         >
-            <div className={item.action === true ? "blockeditor-elements active" : "blockeditor-elements"} >
-               <div className="blockeditor-overlay-elements">
-                  <ul className="blockeditor-element-settings justify-aligen-center">
-                     <li
-                        className="blockeditor-element-add"
-                        title="Add Row"
-                        onClick={() => handleAddRow(item.id)}>
-                        <FaPlus size={12} color="#444" aria-hidden="true" />
-                     </li>
-                     <li
-                        className="blockeditor-element-edit"
-                        title="Edit Row"
-                        onClick={() => handleEditItem(item)}>
-                        <FaGripHorizontal size={12} color="#444" aria-hidden="true" />
-                     </li>
-                     <li
-                        className="blockeditor-element-remove"
-                        title="Delete Row"
-                        onClick={() => handleRemoveRow(item.id)}>
-                        <FaTimes size={12} color="#444" aria-hidden="true" />
-                     </li>
-                  </ul>
+         <div className="tab-container">
+            
+            <div className="tabs">
+               <div
+                  className={`tab ${activeTab === 'Layout' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('Layout')}
+               >
+                  <FaRegWindowMaximize className="tab-icon" />
+                  <span className="tab-text">Layout</span>
                </div>
-               <div className={`blockeditor-inner-elements ${item.type === "Grid" ? "grid-row" : ""}`}>
-
-                  {item.innerElements ?
-                     renderInnerElements(item.innerElements)
-                     :
-                     item.type === "Row" ? (
-                        <div className="blockeditor-first-add" onDrop={(e) => handleInnerDrop(e, item.id)}>
-                           <div className="blockeditor-icon" >
-                              <FaPlus size={12} color="#9da5ae" className="plus-icon" />
-                           </div>
-                        </div>
-                     ) : item.type === "Heading" ? (
-                        <div
-                           key={item.id}
-                           className={item.action === true ? "blockeditor-heading-element active" : "blockeditor-heading-element"}
-                           onClick={() => handleEditItem(item)}
-                           onDragOver={(e) => handleInnerItemDragOver(e, item)}
-                        >
-                           <h1 className="inner-dragger"  >This is a heading</h1>
-                           {activeDropZone === item.id && (
-                              <div className="blockeditor-inner-dropper" onDrop={(e) => handleInnerDrop(e, item.id)}></div>
-                           )}
-                        </div>
-                     ) : item.type === "TextEditor" ? (
-                        <div
-                           key={item.id}
-                           className={item.action === true ? "blockeditor-text-editor-element active" : "blockeditor-text-editor-element"}
-                           onClick={() => handleEditItem(item)}
-                           onDragOver={(e) => handleInnerItemDragOver(e, item)}
-                        >
-                           <p className="inner-dragger">This is sample Paragraph</p>
-                           {activeDropZone === item.id && (
-                              <div className="blockeditor-inner-dropper" onDrop={(e) => handleInnerDrop(e, item.id)}></div>
-                           )}
-                        </div>
-                     ) : (
-                        <div className="blockeditor-first-add" onDrop={(e) => handleInnerDrop(e, item.id)}>
-                           <div className="blockeditor-icon" >
-                              <FaPlus size={12} color="#9da5ae" className="plus-icon" />
-                           </div>
-                        </div>
-                     )
-
-                  }
+               <div
+                  className={`tab ${activeTab === 'Style' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('Style')}
+               >
+                  <FaPaintBrush className="tab-icon" />
+                  <span className="tab-text">Style</span>
                </div>
-            </div>
+               <div
+                  className={`tab ${activeTab === 'Advanced' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('Advanced')}
+               >
+                  <FaCog className="tab-icon" />
+                  <span className="tab-text">Advanced</span>
+               </div>
+               </div>
+               <div className="tab-content">
+               {renderTabContent()}
+               </div>                                    
          </div>
-
-         {showDropZone && dragId && dragId !== item.id && !isTop && (
-            <div
-               className="row-drop-zone"
-               onDrop={(e) => handleRowDrop(e, "after", item.id)}
-               onDragLeave={handleDragLeave}
-               onDragOver={handleDragOver}
-            />
-         )}
       </>
    );
 }

@@ -2,6 +2,12 @@ import React, { useState, useRef, useEffect } from "react";
 import { Head, usePage, Link } from '@inertiajs/react';
 import { FaElementor, FaPlus, FaCog, FaEye, FaSearch, FaBox, FaTextWidth, FaHeading, FaImage, FaVideo, FaSlidersH } from "react-icons/fa";
 import BlockEditorLayout from '@/Pages/Admin/Layouts/BlockEditorLayout';
+import Row from '@/Components/Widgets/Row';
+// import Grid from '@/Components/Widgets/Grid';
+// import TextEditor from '@/Components/Widgets/TextEditor';
+// import Heading from '@/Components/Widgets/Heading';
+// import Image from '@/Components/Widgets/Image';
+// import Video from '@/Components/Widgets/Video';
 
 export default function Index() {
     const { post } = usePage().props;
@@ -40,6 +46,7 @@ export default function Index() {
                 type: "Column",
                 id: generateUniqueId(),
                 action: false,
+                
             }));
         } else {
             newWidget = { type: widgetType, id: generateUniqueId(), action: true };
@@ -78,6 +85,23 @@ export default function Index() {
             window.removeEventListener("message", handleMessage);
         };
     }, []);
+
+
+    
+    const renderEditWidgetContent = () => {
+
+        switch (editWidgetData.type) {
+            case 'Row':
+              return <Row widget={editWidgetData} />;
+           
+            default:
+              return <div>Unknown Widget Type</div>;
+        }
+        
+        
+    };
+
+    console.log(editWidgetData);
 
     return (
         <BlockEditorLayout>
@@ -119,19 +143,8 @@ export default function Index() {
                     <div className="body-content">
                             {editWidgetData ?
                                 <aside id="layout-menu" className="layout-menu menu-vertical menu bg-menu-theme editor-left-sidebar">
-
-                                    <header className="editor-widgets-header">
-                                        <h2>Edit Row</h2>
-                                    </header>
-                                    <div className="nav-item p-3">
-                                        <div className="d-flex align-items-center position-relative">
-                                            <FaSearch size={25} className="search-icon position-absolute ps-3" />
-                                            <input type="text" className="form-control border-1 shadow-none ps-10" placeholder="Search..." aria-label="Search..." />
-                                        </div>
-                                    </div>
-                                    <div className="widgets-list">
-                                                                            
-                                    </div>
+                                    {renderEditWidgetContent()}
+                                   
                                 </aside>
                             :
                             <aside id="layout-menu" className="layout-menu menu-vertical menu bg-menu-theme editor-left-sidebar">

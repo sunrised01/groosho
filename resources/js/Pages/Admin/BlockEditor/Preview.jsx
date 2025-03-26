@@ -1,11 +1,6 @@
 import React, { useState, useEffect } from "react";
 import PreviewLayout from '@/Layouts/PreviewLayout';
-import Row from '@/Components/Widgets/Row';
-import Grid from '@/Components/Widgets/Grid';
-import TextEditor from '@/Components/Widgets/TextEditor';
-import Heading from '@/Components/Widgets/Heading';
-import Image from '@/Components/Widgets/Image';
-import Video from '@/Components/Widgets/Video';
+import PreviewContent from '@/Components/Admin/PreviewContent';
 import { Head, usePage } from '@inertiajs/react';
 import { FaPlus} from "react-icons/fa";
 
@@ -63,7 +58,7 @@ export default function Preview() {
     
     const renderLayout = () => {
         return widgets.map((item) => {
-            return <Row key={item.id} item={item} widgets={widgets} onDropRowHandler={handleRowDrop} onEditActionHandler={handleEditAction} />;
+            return <PreviewContent key={item.id} item={item} widgets={widgets} onDropRowHandler={handleRowDrop} onEditActionHandler={handleEditAction} />;
         });
         
     };
