@@ -72,42 +72,46 @@ export default function Row({  widget }) {
                      {activeSections["tb-container"] && (
                         <div className="accordion-content ">
                            <div className="mb-4 d-flex justify-content-between align-items-center">
-                              <label className="col-form-label me-10">Container Width</label>
+                              <label className="col-form-label me-8">Content Width</label>
                               <select className="form-select" name="containerWidth" value={layoutFieldsData.containerWidth} onChange={handleLayoutSelectChange}>
                                  <option value="box">Box</option>
                                  <option value="full">Full With</option>
                               </select>
-                             
                            </div>
                            <div className="mb-4 d-flex justify-content-between align-items-center">
-                              <label className="col-form-label  me-10">Width</label>
-                              <input className="form-control me-1" type="number" placeholder="100" min="1" max="100" step="1" name="width" value={layoutFieldsData.width} onChange={handleLayoutInputChange} />
-                              <select
-                                 className="form-select unit-field"
-                                 name="width_unit"
-                                 value="%"
-                                 onChange={handleLayoutInputChange} 
-                              >
-                                 <option value="%">%</option>
-                                 <option value="px">px</option>
-                                 <option value="em">em</option>
-                                 <option value="rem">rem</option>
-                              </select>
+                              <label className="col-form-label me-10">Width</label>
+                              <div className="d-flex justify-content-between align-items-center">
+                                    
+                                 <input className="form-control me-1" type="number" placeholder="100" min="1" max="100" step="1" name="width" value={layoutFieldsData.width} onChange={handleLayoutInputChange} />
+                                 <select
+                                    className="form-select unit-field"
+                                    name="width_unit"
+                                    value="%"
+                                    onChange={handleLayoutInputChange} 
+                                 >
+                                    <option value="%">%</option>
+                                    <option value="px">px</option>
+                                    <option value="em">em</option>
+                                    <option value="rem">rem</option>
+                                 </select>
+                              </div>
                            </div>
                            <div className="mb-4 d-flex justify-content-between align-items-center">
                               <label className="col-form-label me-10">Hieght</label>
-                              <input className="form-control me-1" type="number" placeholder="100" min="1" max="100" step="1" name="height" value={layoutFieldsData.height} onChange={handleLayoutInputChange}/>
-                              <select
-                                 className="form-select unit-field"
-                                 name="height_unit"
-                                 value="px"
-                                 onChange={handleLayoutInputChange}  
-                              >
-                                 <option value="%">%</option>
-                                 <option value="px">px</option>
-                                 <option value="em">em</option>
-                                 <option value="rem">rem</option>
-                              </select>
+                              <div className="d-flex justify-content-between align-items-center">
+                                 <input className="form-control me-1" type="number" placeholder="100" min="1" max="100" step="1" name="height" value={layoutFieldsData.height} onChange={handleLayoutInputChange}/>
+                                 <select
+                                    className="form-select unit-field"
+                                    name="height_unit"
+                                    value="px"
+                                    onChange={handleLayoutInputChange}  
+                                 >
+                                    <option value="%">%</option>
+                                    <option value="px">px</option>
+                                    <option value="em">em</option>
+                                    <option value="rem">rem</option>
+                                 </select>
+                              </div>
                            </div>
                         </div>
                      )}

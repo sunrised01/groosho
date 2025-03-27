@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Head, usePage, Link } from '@inertiajs/react';
-import { FaElementor, FaPlus, FaCog, FaEye, FaSearch, FaBox, FaTextWidth, FaHeading, FaImage, FaVideo, FaSlidersH } from "react-icons/fa";
+import { FaElementor, FaPlus, FaCog, FaEye, FaSearch, FaBox, FaTextWidth, FaHeading, FaImage, FaVideo, FaSlidersH, FaDesktop, FaTabletAlt, FaMobileAlt } from "react-icons/fa";
+
+
 import BlockEditorLayout from '@/Pages/Admin/Layouts/BlockEditorLayout';
 import Row from '@/Components/Widgets/Row';
 // import Grid from '@/Components/Widgets/Grid';
@@ -16,6 +18,11 @@ export default function Index() {
     const [dragging, setDragging] = useState(false); 
     const [selectedGridLayout, setSelectedGridLayout] = useState(false);
     const [editWidgetData, setEditWidgetData] = useState(null);
+    const [activeDevice, setActiveDevice] = useState('Desktop');
+
+    const handleDeviceChange = (device) => {
+        setActiveDevice(device);
+    };
 
 
   const toggleGridLayout = () => {
@@ -109,7 +116,7 @@ export default function Index() {
             <div className="layout-container block-editor">
                 <div className="layout-page">
                     <nav className="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached bg-navbar-theme m-0">
-                        <div className="navbar-nav-left navbar-nav d-flex justify-content-left align-items-center w-50">
+                        <div className="navbar-nav-left navbar-nav d-flex justify-content-left align-items-center w-100">
                             <div className="icon w-10">
                                 <button className="icon-link btn-link tooltip-btn">
                                     <FaElementor size={24} />
@@ -120,17 +127,45 @@ export default function Index() {
                                     <FaPlus size={24} />
                                     <span className="tooltip-text">Add Element</span>
                                 </button>
-                                
                             </div>
                             <div className="icon w-10">
-                                <div className="icon w-10">
-                                    <button className="icon-link btn-link tooltip-btn">
-                                        <FaCog size={24} />
-                                    </button>
-                                </div>
+                                <button className="icon-link btn-link tooltip-btn">
+                                    <FaCog size={24} />
+                                </button>
                             </div>
                         </div>
-                        <div className="navbar-nav-right navbar-nav d-flex justify-content-end align-items-center w-50">
+                        
+                        <div className="navbar-nav-center navbar-nav d-flex justify-content-center align-items-center w-100">
+                            <div className="icon w-10">
+                                <button
+                                    className={`icon-link btn-link tooltip-btn ${activeDevice === 'Desktop' ? 'active' : ''}`}
+                                    onClick={() => handleDeviceChange('Desktop')}
+                                >
+                                    <FaDesktop size={24} />
+                                    <span className="tooltip-text">Desktop</span>
+                                </button>
+                            </div>
+                            <div className="icon w-10">
+                                <button
+                                    className={`icon-link btn-link tooltip-btn ${activeDevice === 'Tablet' ? 'active' : ''}`}
+                                    onClick={() => handleDeviceChange('Tablet')}
+                                >
+                                    <FaTabletAlt size={24} />
+                                    <span className="tooltip-text">Tablet</span>
+                                </button>
+                            </div>
+                            <div className="icon w-10">
+                                <button
+                                    className={`icon-link btn-link tooltip-btn ${activeDevice === 'Phone' ? 'active' : ''}`}
+                                    onClick={() => handleDeviceChange('Phone')}
+                                >
+                                    <FaMobileAlt size={24} />
+                                    <span className="tooltip-text">Phone</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="navbar-nav-right navbar-nav d-flex justify-content-end align-items-center w-100">
                             <div className="preview-changes w-10">
                                 <FaEye size={24} title="Preview Changes" />
                             </div>
@@ -139,6 +174,7 @@ export default function Index() {
                             </div>
                         </div>
                     </nav>
+
 
                     <div className="body-content">
                             {editWidgetData ?

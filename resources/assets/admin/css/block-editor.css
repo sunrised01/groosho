@@ -170,12 +170,12 @@
   .tooltip-text {
     visibility: hidden;
     position: absolute;
-    bottom: -39px; 
+    bottom: -39px;
     left: 50%;
-    transform: translateX(-50%); 
+    transform: translateX(-50%);
     background-color: #333;
     color: #fff;
-    text-align: left;
+    text-align: center;
     border-radius: 4px;
     padding: 10px 12px;
     font-size: 14px;
@@ -183,10 +183,10 @@
     transition: opacity 0.3s;
     pointer-events: none;
     white-space: nowrap;
-    display: inline-block; 
-    min-width: 100px; 
-    text-overflow: ellipsis; 
-    overflow: hidden; 
+    display: inline-block;
+    min-width: 100px;
+    text-overflow: ellipsis;
+    overflow: hidden;
     font-weight: bold;
   }
   
@@ -263,4 +263,21 @@ select.form-select.unit-field {
 	width: 40px;
 }
   
- 
+.icon-link {
+  display: inline-block;
+  padding: 10px;
+  border: 1px solid transparent; 
+  border-radius: 50%; 
+  background-color: transparent; 
+  transition: all 0.3s ease;
+  color: #333; 
+}
+
+.icon-link.active {
+	color: gray;
+}
+
+.icon-link:hover {
+  cursor: pointer;
+  color: gray;
+}
