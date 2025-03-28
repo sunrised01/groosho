@@ -88,6 +88,11 @@ export default function Index() {
 
         window.addEventListener("message", handleMessage);
 
+        // if (iframeRef.current) {
+        //     // Sending the device type to iframe so it can adjust layout accordingly
+        //     iframeRef.current.contentWindow.postMessage({ device: 'Tablet' }, "*");
+        // }
+
         return () => {
             window.removeEventListener("message", handleMessage);
         };
@@ -99,7 +104,7 @@ export default function Index() {
 
         switch (editWidgetData.type) {
             case 'Row':
-              return <Row widget={editWidgetData} />;
+              return <Row widget={editWidgetData} activeDevice={activeDevice} />;
            
             default:
               return <div>Unknown Widget Type</div>;
@@ -258,17 +263,17 @@ export default function Index() {
                                 ref={iframeRef}
                             />
                             <div
-                                    className={`drop-zone dragged`}
-                                    style={{ 
-                                        position: "absolute",
-                                        bottom: "55px",
-                                        width: "94%",
-                                        textAlign: "center",
-                                        padding: "123px 0 25px 0",
-                                    }}
-                                    onDrop={handleDrop}
-                                    onDragOver={(e) => e.preventDefault()}
-                                ></div>
+                                className={`drop-zone dragged`}
+                                style={{ 
+                                    position: "absolute",
+                                    bottom: "55px",
+                                    width: "94%",
+                                    textAlign: "center",
+                                    padding: "123px 0 25px 0",
+                                }}
+                                onDrop={handleDrop}
+                                onDragOver={(e) => e.preventDefault()}
+                            ></div>
                             {dragging && 
                                 <div
                                     className={`drop-zone dragged`}

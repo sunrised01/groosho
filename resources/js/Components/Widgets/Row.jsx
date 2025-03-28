@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { FaRegWindowMaximize, FaPaintBrush, FaCog, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 
-export default function Row({  widget }) {
+export default function Row({  widget, activeDevice }) {
 
    console.log('widget', widget);
+   console.log('activeDevice', activeDevice);
 
    const [activeTab, setActiveTab] = useState('Layout');
    const [activeSections, setActiveSections] = useState({
@@ -11,9 +12,19 @@ export default function Row({  widget }) {
    });
 
    const [layoutFieldsData, setLayoutFieldsData] = useState({
-      containerWidth: "full",  
+      content_Width: "full",  
       width: "",              
-      height: "",            
+      height: "",   
+      width_unit: "%",   
+      height_unit: "px",   
+      mobile_width: "",              
+      mobile_height: "",
+      tablet_width: "",             
+      tablet_height: "",    
+      mobile_width_unit: "%",   
+      mobile_height_unit: "px",   
+      tablet_width_unit: "%",   
+      tablet_height_unit: "px",            
    });
 
    // Handle form value changes and update widget data
@@ -73,45 +84,109 @@ export default function Row({  widget }) {
                         <div className="accordion-content ">
                            <div className="mb-4 d-flex justify-content-between align-items-center">
                               <label className="col-form-label me-8">Content Width</label>
-                              <select className="form-select" name="containerWidth" value={layoutFieldsData.containerWidth} onChange={handleLayoutSelectChange}>
+                              <select className="form-select" name="content_Width" value={layoutFieldsData.content_Width} onChange={handleLayoutSelectChange}>
                                  <option value="box">Box</option>
                                  <option value="full">Full With</option>
                               </select>
                            </div>
                            <div className="mb-4 d-flex justify-content-between align-items-center">
                               <label className="col-form-label me-10">Width</label>
-                              <div className="d-flex justify-content-between align-items-center">
-                                    
-                                 <input className="form-control me-1" type="number" placeholder="100" min="1" max="100" step="1" name="width" value={layoutFieldsData.width} onChange={handleLayoutInputChange} />
-                                 <select
-                                    className="form-select unit-field"
-                                    name="width_unit"
-                                    value="%"
-                                    onChange={handleLayoutInputChange} 
-                                 >
-                                    <option value="%">%</option>
-                                    <option value="px">px</option>
-                                    <option value="em">em</option>
-                                    <option value="rem">rem</option>
-                                 </select>
-                              </div>
+                              {activeDevice === 'Desktop' ? (
+                                 <div className="d-flex justify-content-between align-items-center">
+                                    <input className="form-control me-1" type="number" placeholder="100" min="1" max="100" step="1" name="width" value={layoutFieldsData.width} onChange={handleLayoutInputChange} />
+                                    <select
+                                       className="form-select unit-field"
+                                       name="width_unit"
+                                       value={layoutFieldsData.width_unit}
+                                       onChange={handleLayoutInputChange} 
+                                    >
+                                       <option value="%">%</option>
+                                       <option value="px">px</option>
+                                       <option value="em">em</option>
+                                       <option value="rem">rem</option>
+                                    </select>
+                                 </div>
+                              ) : activeDevice === 'Tablet' ? (
+                                 <div className="d-flex justify-content-between align-items-center">
+                                    <input className="form-control me-1" type="number" placeholder="100" min="1" max="100" step="1" name="tablet_width" value={layoutFieldsData.tablet_width} onChange={handleLayoutInputChange} />
+                                    <select
+                                       className="form-select unit-field"
+                                       name="tablet_width_unit"
+                                       value={layoutFieldsData.tablet_width_unit}
+                                       onChange={handleLayoutInputChange} 
+                                    >
+                                       <option value="%">%</option>
+                                       <option value="px">px</option>
+                                       <option value="em">em</option>
+                                       <option value="rem">rem</option>
+                                    </select>
+                                 </div>
+                              ) : 
+                                 <div className="d-flex justify-content-between align-items-center">
+                                    <input className="form-control me-1" type="number" placeholder="100" min="1" max="100" step="1" name="mobile_width" value={layoutFieldsData.mobile_width} onChange={handleLayoutInputChange} />
+                                    <select
+                                       className="form-select unit-field"
+                                       name="mobile_width_unit"
+                                       value={layoutFieldsData.mobile_width_unit}
+                                       onChange={handleLayoutInputChange} 
+                                    >
+                                       <option value="%">%</option>
+                                       <option value="px">px</option>
+                                       <option value="em">em</option>
+                                       <option value="rem">rem</option>
+                                    </select>
+                                 </div>
+                              }
                            </div>
                            <div className="mb-4 d-flex justify-content-between align-items-center">
                               <label className="col-form-label me-10">Hieght</label>
-                              <div className="d-flex justify-content-between align-items-center">
-                                 <input className="form-control me-1" type="number" placeholder="100" min="1" max="100" step="1" name="height" value={layoutFieldsData.height} onChange={handleLayoutInputChange}/>
-                                 <select
-                                    className="form-select unit-field"
-                                    name="height_unit"
-                                    value="px"
-                                    onChange={handleLayoutInputChange}  
-                                 >
-                                    <option value="%">%</option>
-                                    <option value="px">px</option>
-                                    <option value="em">em</option>
-                                    <option value="rem">rem</option>
-                                 </select>
-                              </div>
+                              {activeDevice === 'Desktop' ? (
+                                 <div className="d-flex justify-content-between align-items-center">
+                                    <input className="form-control me-1" type="number" placeholder="100" min="1" max="100" step="1" name="height" value={layoutFieldsData.height} onChange={handleLayoutInputChange}/>
+                                    <select
+                                       className="form-select unit-field"
+                                       name="height_unit"
+                                       value={layoutFieldsData.height_unit}
+                                       onChange={handleLayoutInputChange}  
+                                    >
+                                       <option value="%">%</option>
+                                       <option value="px">px</option>
+                                       <option value="em">em</option>
+                                       <option value="rem">rem</option>
+                                    </select>
+                                 </div>
+                              ) : activeDevice === 'Tablet' ? (
+                                 <div className="d-flex justify-content-between align-items-center">
+                                    <input className="form-control me-1" type="number" placeholder="100" min="1" max="100" step="1" name="tablet_height" value={layoutFieldsData.tablet_height} onChange={handleLayoutInputChange}/>
+                                    <select
+                                       className="form-select unit-field"
+                                       name="tablet_height_unit"
+                                       value={layoutFieldsData.tablet_height_unit}
+                                       onChange={handleLayoutInputChange}  
+                                    >
+                                       <option value="%">%</option>
+                                       <option value="px">px</option>
+                                       <option value="em">em</option>
+                                       <option value="rem">rem</option>
+                                    </select>
+                                 </div>
+                              ) : 
+                                 <div className="d-flex justify-content-between align-items-center">
+                                    <input className="form-control me-1" type="number" placeholder="100" min="1" max="100" step="1" name="mobile_height" value={layoutFieldsData.mobile_height} onChange={handleLayoutInputChange}/>
+                                    <select
+                                       className="form-select unit-field"
+                                       name="mobile_height_unit"
+                                       value={layoutFieldsData.mobile_height_unit}
+                                       onChange={handleLayoutInputChange}  
+                                    >
+                                       <option value="%">%</option>
+                                       <option value="px">px</option>
+                                       <option value="em">em</option>
+                                       <option value="rem">rem</option>
+                                    </select>
+                                 </div>
+                              }
+                              
                            </div>
                         </div>
                      )}
