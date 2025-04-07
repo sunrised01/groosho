@@ -1,5 +1,7 @@
     import '../css/app.css';
     import './bootstrap';
+    import store from './redux/store'; 
+    import { Provider } from 'react-redux';
 
     import { createInertiaApp } from '@inertiajs/react';
     import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
@@ -30,7 +32,11 @@
         setup({ el, App, props }) {
             const root = createRoot(el);
 
-            root.render(<App {...props} />);
+            root.render(
+                <Provider store={store}>
+                    <App {...props} />
+                </Provider>
+            );
         },
         progress: {
             color: '#4B5563',

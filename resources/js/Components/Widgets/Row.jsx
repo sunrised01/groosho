@@ -1,56 +1,67 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaRegWindowMaximize, FaPaintBrush, FaCog, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 
-export default function Row({  widget, activeDevice }) {
-
+export default function Row({ widget, updateWidget, activeDevice }) {
+   const [widgetId, setWidgetId] = useState(widget.id);
    console.log('widget', widget);
-   console.log('activeDevice', activeDevice);
+   useEffect(() => {
+      setWidgetId(widget.id);
+  }, [widget.id]);
+  
 
    const [activeTab, setActiveTab] = useState('Layout');
    const [activeSections, setActiveSections] = useState({
          'tb-container': true,
    });
-
    const [layoutFieldsData, setLayoutFieldsData] = useState({
-      content_Width: "full",  
-      width: "",              
-      height: "",   
-      width_unit: "%",   
-      height_unit: "px",   
-      mobile_width: "",              
-      mobile_height: "",
-      tablet_width: "",             
-      tablet_height: "",    
-      mobile_width_unit: "%",   
-      mobile_height_unit: "px",   
-      tablet_width_unit: "%",   
-      tablet_height_unit: "px",            
+      [widgetId]: {
+         content_Width: "full",  
+         width: "",              
+         height: "",   
+         width_unit: "%",   
+         height_unit: "px",   
+         mobile_width: "",              
+         mobile_height: "",
+         tablet_width: "",             
+         tablet_height: "",    
+         mobile_width_unit: "%",   
+         mobile_height_unit: "px",   
+         tablet_width_unit: "%",   
+         tablet_height_unit: "px",   
+     },            
    });
 
-   // Handle form value changes and update widget data
+   // Handle input change for layout fields
    const handleLayoutInputChange = (e) => {
       const { name, value } = e.target;
 
       setLayoutFieldsData(prevState => {
-         const newLayoutFieldsData = { ...prevState, [name]: value };
-         // setWidgetData(prevData => ({
-         //    ...prevData,
-         //    layout_fields_data: JSON.stringify(newLayoutFieldsData)
-         // }));
+         const newLayoutFieldsData = {
+            ...prevState,
+            [widgetId]: {
+               ...prevState[widgetId],
+               [name]: value
+            }
+         };
+         updateWidget({ ...widget, layout_fields: newLayoutFieldsData[widgetId] });
 
          return newLayoutFieldsData;
       });
    };
 
+   // Handle select change for layout fields (like units)
    const handleLayoutSelectChange = (e) => {
       const { name, value } = e.target;
 
       setLayoutFieldsData(prevState => {
-         const newLayoutFieldsData = { ...prevState, [name]: value };
-         // setWidgetData(prevData => ({
-         //    ...prevData,
-         //    layout_fields_data: JSON.stringify(newLayoutFieldsData) 
-         // }));
+         const newLayoutFieldsData = {
+            ...prevState,
+            [widgetId]: {
+               ...prevState[widgetId],
+               [name]: value
+            }
+         };
+         updateWidget({ ...widget, layout_fields: newLayoutFieldsData[widgetId] });
 
          return newLayoutFieldsData;
       });
@@ -63,9 +74,7 @@ export default function Row({  widget, activeDevice }) {
          [index]: !prevState[index],
       }));
    };
-
-   console.log(layoutFieldsData);
-
+   
    const renderTabContent = () => {
       switch (activeTab) {
         case 'Layout':
@@ -84,7 +93,7 @@ export default function Row({  widget, activeDevice }) {
                         <div className="accordion-content ">
                            <div className="mb-4 d-flex justify-content-between align-items-center">
                               <label className="col-form-label me-8">Content Width</label>
-                              <select className="form-select" name="content_Width" value={layoutFieldsData.content_Width} onChange={handleLayoutSelectChange}>
+                              <select className="form-select" name="content_Width" value={layoutFieldsData[widgetId]?.content_Width || "full"} onChange={handleLayoutSelectChange}>
                                  <option value="box">Box</option>
                                  <option value="full">Full With</option>
                               </select>
@@ -93,11 +102,11 @@ export default function Row({  widget, activeDevice }) {
                               <label className="col-form-label me-10">Width</label>
                               {activeDevice === 'Desktop' ? (
                                  <div className="d-flex justify-content-between align-items-center">
-                                    <input className="form-control me-1" type="number" placeholder="100" min="1" max="100" step="1" name="width" value={layoutFieldsData.width} onChange={handleLayoutInputChange} />
+                                    <input className="form-control me-1" type="number" placeholder="100" min="1" max="100" step="1" name="width" value={layoutFieldsData[widgetId]?.width || ""} onChange={handleLayoutInputChange} />
                                     <select
                                        className="form-select unit-field"
                                        name="width_unit"
-                                       value={layoutFieldsData.width_unit}
+                                       value={layoutFieldsData[widgetId]?.width_unit || "%"}
                                        onChange={handleLayoutInputChange} 
                                     >
                                        <option value="%">%</option>
@@ -108,11 +117,11 @@ export default function Row({  widget, activeDevice }) {
                                  </div>
                               ) : activeDevice === 'Tablet' ? (
                                  <div className="d-flex justify-content-between align-items-center">
-                                    <input className="form-control me-1" type="number" placeholder="100" min="1" max="100" step="1" name="tablet_width" value={layoutFieldsData.tablet_width} onChange={handleLayoutInputChange} />
+                                    <input className="form-control me-1" type="number" placeholder="100" min="1" max="100" step="1" name="tablet_width" value={layoutFieldsData[widgetId]?.tablet_width || ""} onChange={handleLayoutInputChange} />
                                     <select
                                        className="form-select unit-field"
                                        name="tablet_width_unit"
-                                       value={layoutFieldsData.tablet_width_unit}
+                                       value={layoutFieldsData[widgetId]?.tablet_width_unit || "%"}
                                        onChange={handleLayoutInputChange} 
                                     >
                                        <option value="%">%</option>
@@ -123,11 +132,11 @@ export default function Row({  widget, activeDevice }) {
                                  </div>
                               ) : 
                                  <div className="d-flex justify-content-between align-items-center">
-                                    <input className="form-control me-1" type="number" placeholder="100" min="1" max="100" step="1" name="mobile_width" value={layoutFieldsData.mobile_width} onChange={handleLayoutInputChange} />
+                                    <input className="form-control me-1" type="number" placeholder="100" min="1" max="100" step="1" name="mobile_width" value={layoutFieldsData[widgetId].mobile_width || ""} onChange={handleLayoutInputChange} />
                                     <select
                                        className="form-select unit-field"
                                        name="mobile_width_unit"
-                                       value={layoutFieldsData.mobile_width_unit}
+                                       value={layoutFieldsData[widgetId]?.mobile_width_unit || "%"}
                                        onChange={handleLayoutInputChange} 
                                     >
                                        <option value="%">%</option>
@@ -142,11 +151,11 @@ export default function Row({  widget, activeDevice }) {
                               <label className="col-form-label me-10">Hieght</label>
                               {activeDevice === 'Desktop' ? (
                                  <div className="d-flex justify-content-between align-items-center">
-                                    <input className="form-control me-1" type="number" placeholder="100" min="1" max="100" step="1" name="height" value={layoutFieldsData.height} onChange={handleLayoutInputChange}/>
+                                    <input className="form-control me-1" type="number" placeholder="100" min="1" max="100" step="1" name="height" value={layoutFieldsData[widgetId]?.height || ""} onChange={handleLayoutInputChange}/>
                                     <select
                                        className="form-select unit-field"
                                        name="height_unit"
-                                       value={layoutFieldsData.height_unit}
+                                       value={layoutFieldsData[widgetId]?.height_unit || "px"}
                                        onChange={handleLayoutInputChange}  
                                     >
                                        <option value="%">%</option>
@@ -157,11 +166,11 @@ export default function Row({  widget, activeDevice }) {
                                  </div>
                               ) : activeDevice === 'Tablet' ? (
                                  <div className="d-flex justify-content-between align-items-center">
-                                    <input className="form-control me-1" type="number" placeholder="100" min="1" max="100" step="1" name="tablet_height" value={layoutFieldsData.tablet_height} onChange={handleLayoutInputChange}/>
+                                    <input className="form-control me-1" type="number" placeholder="100" min="1" max="100" step="1" name="tablet_height" value={layoutFieldsData[widgetId]?.tablet_height || ""} onChange={handleLayoutInputChange}/>
                                     <select
                                        className="form-select unit-field"
                                        name="tablet_height_unit"
-                                       value={layoutFieldsData.tablet_height_unit}
+                                       value={layoutFieldsData[widgetId]?.tablet_height_unit || "px"}
                                        onChange={handleLayoutInputChange}  
                                     >
                                        <option value="%">%</option>
@@ -172,11 +181,11 @@ export default function Row({  widget, activeDevice }) {
                                  </div>
                               ) : 
                                  <div className="d-flex justify-content-between align-items-center">
-                                    <input className="form-control me-1" type="number" placeholder="100" min="1" max="100" step="1" name="mobile_height" value={layoutFieldsData.mobile_height} onChange={handleLayoutInputChange}/>
+                                    <input className="form-control me-1" type="number" placeholder="100" min="1" max="100" step="1" name="mobile_height" value={layoutFieldsData[widgetId]?.mobile_height || ""} onChange={handleLayoutInputChange}/>
                                     <select
                                        className="form-select unit-field"
                                        name="mobile_height_unit"
-                                       value={layoutFieldsData.mobile_height_unit}
+                                       value={layoutFieldsData[widgetId]?.mobile_height_unit || "px"}
                                        onChange={handleLayoutInputChange}  
                                     >
                                        <option value="%">%</option>

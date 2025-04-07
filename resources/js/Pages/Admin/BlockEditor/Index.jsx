@@ -14,7 +14,6 @@ import Row from '@/Components/Widgets/Row';
 export default function Index() {
     const { post } = usePage().props;
     const iframeRef = useRef(null);
-    const [widgets, setWidgets] = useState([]);
     const [dragging, setDragging] = useState(false); 
     const [selectedGridLayout, setSelectedGridLayout] = useState(false);
     const [editWidgetData, setEditWidgetData] = useState(null);
@@ -47,30 +46,30 @@ export default function Index() {
         let newWidget = {};
     
         if (widgetType === "Grid") {
-            newWidget = { type: "Grid", id: generateUniqueId(), action: true };
+            newWidget = { type: "Grid", id: generateUniqueId(), action: true, layout_fields: null };
             
             newWidget.innerElements = Array.from({ length: colNum }, () => ({
                 type: "Column",
                 id: generateUniqueId(),
                 action: false,
+                layout_fields: null,
                 
             }));
         } else {
-            newWidget = { type: widgetType, id: generateUniqueId(), action: true };
+            newWidget = { type: widgetType, id: generateUniqueId(), action: true, layout_fields: null };
             
             if (widgetType !== "Row") {
                 newWidget.innerElements = [{
                     type: widgetType,
                     id: generateUniqueId(),
                     action: false,
+                    layout_fields: null,
                 }];
             }
         }
-    
-        setWidgets((prevWidgets) => [...prevWidgets, newWidget]);
-    
+        
         if (iframeRef.current) {
-            iframeRef.current.contentWindow.postMessage(newWidget, "*");
+            iframeRef.current.contentWindow.postMessage({'newWidget': newWidget}, "*");
         }
         setDragging(false); 
     };
@@ -88,11 +87,6 @@ export default function Index() {
 
         window.addEventListener("message", handleMessage);
 
-        // if (iframeRef.current) {
-        //     // Sending the device type to iframe so it can adjust layout accordingly
-        //     iframeRef.current.contentWindow.postMessage({ device: 'Tablet' }, "*");
-        // }
-
         return () => {
             window.removeEventListener("message", handleMessage);
         };
@@ -104,16 +98,20 @@ export default function Index() {
 
         switch (editWidgetData.type) {
             case 'Row':
-              return <Row widget={editWidgetData} activeDevice={activeDevice} />;
+              return <Row widget={editWidgetData} updateWidget={onUpdateWidget} activeDevice={activeDevice} />;
            
             default:
               return <div>Unknown Widget Type</div>;
         }
-        
-        
     };
 
-    console.log(editWidgetData);
+    const onUpdateWidget = (editWidget) => {
+        console.log('editWidget', editWidget);
+        if (iframeRef.current) {
+            iframeRef.current.contentWindow.postMessage({editWidget:editWidget}, "*");
+        }
+    }
+
 
     return (
         <BlockEditorLayout>

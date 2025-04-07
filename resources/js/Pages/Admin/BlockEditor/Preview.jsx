@@ -15,18 +15,29 @@ export default function Preview() {
 
         const handleMessage = (event) => {
             if (event.origin !== window.location.origin) return; 
-    
-            const newWidget = event.data;
-    
+        
+            const { newWidget, editWidget } = event.data;
+        
             if (newWidget) {
                 setWidgets((prevWidgets) => {
                     const oldWidgets = [...prevWidgets];
                     updateActionToFalse(oldWidgets);
                     return [...oldWidgets, newWidget];
                 });
+
+                setEditWidget(newWidget);
+            }
+        
+            if (editWidget) {
+                let updatedWidgets = [...widgets]; 
+                updatedWidgets = updatedWidgets.map(widget =>
+                    widget.id === editWidget.id ? { ...widget, ...editWidget } : widget
+                );
+        
+                setWidgets(updatedWidgets); 
             }
         };
-    
+            
         window.addEventListener('message', handleMessage);
     
         return () => {
